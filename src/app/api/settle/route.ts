@@ -10,10 +10,6 @@ interface SettleBody {
   remittance: Remittance;
   corridor: CorridorDiscoveryResult;
   match: CashOutMatch;
-  signature?: `0x${string}`;
-  nonce?: `0x${string}`;
-  validAfter?: number;
-  validBefore?: number;
 }
 
 export async function POST(req: Request) {
@@ -25,21 +21,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const signedAuthorization =
-    body.signature && body.nonce && body.validBefore !== undefined
-      ? {
-          signature: body.signature,
-          nonce: body.nonce,
-          validAfter: body.validAfter ?? 0,
-          validBefore: body.validBefore,
-        }
-      : undefined;
-
-  const receipt = await settleRemittance({
-    remittance: body.remittance,
-    corridorDiscovery: body.corridor,
-    match: body.match,
-    signedAuthorization,
-  });
-  return NextResponse.json({ receipt });
+  try {
+    const receipt = await settleRemittance({
+      remittance: body.remittance,
+      corridorDiscovery: body.corridor,
+      match: body.match,
+    });
+    return NextResponse.json({ receipt });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "settle failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

@@ -1,8 +1,5 @@
-import { isDemoMode, RECEIVER_ADDRESS, SENDER_ADDRESS } from "@/infra/env";
-import {
-  settleOnFacilitator,
-  type SignedAuthorization,
-} from "@/infra/facilitator-client";
+import { isDemoMode, SENDER_PRIVATE_KEY } from "@/infra/env";
+import { settleOnFacilitatorReal } from "@/infra/facilitator-client";
 import { mockSettle } from "@/infra/mock-adapter";
 import type {
   CashOutMatch,
@@ -15,11 +12,10 @@ export async function settleRemittance(args: {
   remittance: Remittance;
   corridorDiscovery: CorridorDiscoveryResult;
   match: CashOutMatch;
-  signedAuthorization?: SignedAuthorization;
 }): Promise<SettlementReceipt> {
   const { remittance, corridorDiscovery, match } = args;
 
-  if (isDemoMode() || !args.signedAuthorization) {
+  if (isDemoMode() || !SENDER_PRIVATE_KEY) {
     return mockSettle({
       remittance,
       match,
@@ -27,12 +23,9 @@ export async function settleRemittance(args: {
     });
   }
 
-  return settleOnFacilitator({
-    sender: SENDER_ADDRESS,
-    receiver: RECEIVER_ADDRESS,
+  return settleOnFacilitatorReal({
     amountPYUSD: match.netDeliveredUSD,
     corridor: corridorDiscovery.recommended,
     match,
-    signedAuthorization: args.signedAuthorization,
   });
 }

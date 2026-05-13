@@ -1,72 +1,116 @@
 import { pyusdToOnchainAmount } from "@/core/settlement";
 import type { CashOutMatch, Corridor, SettlementReceipt } from "@/types/remittance";
-import { FACILITATOR_URL, KITE_CHAIN_ID, PYUSD_ADDRESS } from "./env";
+import { FACILITATOR_URL, KITE_CHAIN_ID, PYUSD_ADDRESS, RECEIVER_ADDRESS, SENDER_ADDRESS } from "./env";
+import { signTransferAuthorization } from "./eip3009-signer";
 
-export interface SignedAuthorization {
-  signature: `0x${string}`;
-  nonce: `0x${string}`;
-  validAfter: number;
-  validBefore: number;
-}
+const FACILITATOR_TIMEOUT_MS = 10_000;
 
-interface FacilitatorSettleRequest {
-  chainId: number;
-  asset: `0x${string}`;
+interface X402Authorization {
   from: `0x${string}`;
   to: `0x${string}`;
-  amount: string;
-  signature: `0x${string}`;
+  value: string;
+  validAfter: string;
+  validBefore: string;
   nonce: `0x${string}`;
-  validAfter: number;
-  validBefore: number;
-  scheme: "exact";
-  network: string;
 }
 
-export async function settleOnFacilitator(args: {
-  sender: `0x${string}`;
-  receiver: `0x${string}`;
+interface X402CanonicalBody {
+  x402Version: 2;
+  resource: { url: string };
+  accepted: {
+    scheme: "exact";
+    network: string;
+    amount: string;
+    asset: `0x${string}`;
+    payTo: `0x${string}`;
+    maxTimeoutSeconds: number;
+    extra: { assetTransferMethod: "eip3009" };
+  };
+  payload: {
+    signature: `0x${string}`;
+    authorization: X402Authorization;
+  };
+}
+
+interface FacilitatorSettleResponse {
+  settled?: boolean;
+  txHash?: `0x${string}`;
+  blockNumber?: number;
+  network?: string;
+  error?: { code?: string; message?: string };
+}
+
+function buildCanonicalBody(args: {
+  authorization: X402Authorization;
+  signature: `0x${string}`;
+}): X402CanonicalBody {
+  return {
+    x402Version: 2,
+    resource: { url: "https://wasiai-agentshop.vercel.app/remit" },
+    accepted: {
+      scheme: "exact",
+      network: `eip155:${KITE_CHAIN_ID}`,
+      amount: args.authorization.value,
+      asset: PYUSD_ADDRESS,
+      payTo: args.authorization.to,
+      maxTimeoutSeconds: 300,
+      extra: { assetTransferMethod: "eip3009" },
+    },
+    payload: {
+      signature: args.signature,
+      authorization: args.authorization,
+    },
+  };
+}
+
+export async function settleOnFacilitatorReal(args: {
   amountPYUSD: number;
   corridor: Corridor;
   match: CashOutMatch;
-  signedAuthorization: SignedAuthorization;
 }): Promise<SettlementReceipt> {
-  const body: FacilitatorSettleRequest = {
-    chainId: KITE_CHAIN_ID,
-    asset: PYUSD_ADDRESS,
-    from: args.sender,
-    to: args.receiver,
-    amount: pyusdToOnchainAmount(args.amountPYUSD).toString(),
-    signature: args.signedAuthorization.signature,
-    nonce: args.signedAuthorization.nonce,
-    validAfter: args.signedAuthorization.validAfter,
-    validBefore: args.signedAuthorization.validBefore,
-    scheme: "exact",
-    network: `eip155:${KITE_CHAIN_ID}`,
-  };
+  const valueOnchain = pyusdToOnchainAmount(args.amountPYUSD);
+  const signed = await signTransferAuthorization({
+    to: RECEIVER_ADDRESS,
+    valueOnchain,
+    timeoutSeconds: 300,
+  });
+
+  const body = buildCanonicalBody({
+    authorization: {
+      from: signed.from,
+      to: signed.to,
+      value: signed.value,
+      validAfter: signed.validAfter,
+      validBefore: signed.validBefore,
+      nonce: signed.nonce,
+    },
+    signature: signed.signature,
+  });
 
   const res = await fetch(`${FACILITATOR_URL}/settle`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(FACILITATOR_TIMEOUT_MS),
   });
 
-  if (!res.ok) {
-    throw new Error(`Facilitator settle failed: ${res.status} ${await res.text()}`);
+  const result = (await res.json().catch(() => null)) as FacilitatorSettleResponse | null;
+  if (!res.ok || !result) {
+    const detail = result?.error?.message ?? JSON.stringify(result) ?? "(no body)";
+    throw new Error(`Facilitator /settle HTTP ${res.status}: ${detail}`);
   }
-
-  const result = (await res.json()) as {
-    txHash: `0x${string}`;
-    blockNumber: number;
-    from: `0x${string}`;
-  };
+  if (result.settled !== true || !result.txHash) {
+    throw new Error(
+      `Facilitator did not settle: ${result.error?.message ?? "unknown error"}`,
+    );
+  }
 
   return {
     txHash: result.txHash,
     chainId: KITE_CHAIN_ID,
-    blockNumber: result.blockNumber,
-    fromWallet: result.from,
-    toWallet: args.receiver,
+    blockNumber: result.blockNumber ?? 0,
+    fromWallet: SENDER_ADDRESS,
+    toWallet: RECEIVER_ADDRESS,
     amountPYUSD: args.amountPYUSD,
     corridor: args.corridor.id,
     partner: args.match.partnerName,
