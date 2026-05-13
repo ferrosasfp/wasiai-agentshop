@@ -34,10 +34,14 @@ interface X402CanonicalBody {
 
 interface FacilitatorSettleResponse {
   settled?: boolean;
-  txHash?: `0x${string}`;
+  transactionHash?: `0x${string}`;
   blockNumber?: number;
+  amount?: string;
+  from?: string;
+  to?: string;
+  asset?: string;
   network?: string;
-  error?: { code?: string; message?: string };
+  error?: { code?: string; message?: string; http?: number };
 }
 
 function buildCanonicalBody(args: {
@@ -99,14 +103,13 @@ export async function settleOnFacilitatorReal(args: {
     const detail = result?.error?.message ?? JSON.stringify(result) ?? "(no body)";
     throw new Error(`Facilitator /settle HTTP ${res.status}: ${detail}`);
   }
-  if (result.settled !== true || !result.txHash) {
-    throw new Error(
-      `Facilitator did not settle: ${result.error?.message ?? "unknown error"}`,
-    );
+  if (result.settled !== true || !result.transactionHash) {
+    const detail = result.error?.message ?? `settled=${result.settled} tx=${result.transactionHash ?? "none"}`;
+    throw new Error(`Facilitator did not settle: ${detail}`);
   }
 
   return {
-    txHash: result.txHash,
+    txHash: result.transactionHash,
     chainId: KITE_CHAIN_ID,
     blockNumber: result.blockNumber ?? 0,
     fromWallet: SENDER_ADDRESS,
