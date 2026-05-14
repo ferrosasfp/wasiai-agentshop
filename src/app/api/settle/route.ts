@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         body: {
           signature: "0x... (65 bytes · r + s + v)",
           signedBy: receipt.fromWallet,
-          note: "Signed with SENDER_PRIVATE_KEY (operator wallet) — never leaves this server",
+          note: "Signed with SENDER_PRIVATE_KEY (operator wallet). The key never leaves this server.",
         },
         summary: `EIP-712 typed data signed for ${onchainAmount} PYUSD transfer to ${receipt.toWallet.slice(0, 8)}...`,
       },

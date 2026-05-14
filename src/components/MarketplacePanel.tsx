@@ -55,7 +55,7 @@ export function MarketplacePanel({ onTrace, trigger = 0 }: MarketplacePanelProps
         </span>
         <InfoTooltip>
           Discovery-only: the chatbot calls wasiai-a2a /discover to list agents available
-          on the marketplace. No payment, no compose, no transaction yet — just a lookup.
+          on the marketplace. No payment, no compose, no transaction yet. Just a lookup.
           Returns slug + price + chain + asset per agent so the chatbot can build a pipeline.
         </InfoTooltip>
       </div>

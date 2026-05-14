@@ -91,7 +91,7 @@ export function Settlement({
               </div>
               <div className="text-[10px] mono text-muted pl-4">
                 {isTestnetCapped
-                  ? `testnet cap — mainnet would settle full ${formatAmountUSD(match?.netDeliveredUSD ?? 0)}`
+                  ? `testnet cap. Mainnet would settle full ${formatAmountUSD(match?.netDeliveredUSD ?? 0)}`
                   : "onchain transfer"}
               </div>
               <div className="flex justify-between mono pt-1.5">
@@ -167,7 +167,7 @@ export function Settlement({
         <InfoTooltip>
           The server generates an EIP-3009 TransferWithAuthorization typed-data and signs
           it locally with SENDER_PRIVATE_KEY (operator wallet). No network call, no money
-          moves — just a cryptographic signature (65 bytes) that authorizes the facilitator
+          moves. Just a cryptographic signature (65 bytes) that authorizes the facilitator
           to execute the transfer in sección 04. The split sign/settle is what enables
           gasless UX on x402.
         </InfoTooltip>

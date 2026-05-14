@@ -28,7 +28,7 @@ export function RemittancePicker({ onSelect, disabled }: Props) {
           01 · Pick a remittance request
         </span>
         <InfoTooltip>
-          Pure user action — no API call. Clicking a card kicks off the agent pipeline
+          Pure user action. No API call. Clicking a card kicks off the agent pipeline
           (sección 02). Each card represents a realistic remittance scenario (US/ES sender
           to MX/CO/PE receiver) with different cash-out preferences and amounts.
         </InfoTooltip>

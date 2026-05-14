@@ -328,8 +328,8 @@ export default function HomePage() {
                     Mexico alone receives{" "}
                     <strong style={{ color: "var(--fg)", fontWeight: 500 }}>
                       $63B annually
-                    </strong>{" "}
-                    — 1 in 5 households depends on remittances.
+                    </strong>
+                    . 1 in 5 households depend on remittances.
                   </div>
                 </div>
                 <div className="hstat">
@@ -349,8 +349,8 @@ export default function HomePage() {
                   </div>
                   <div className="l">total agent fees · PYUSD</div>
                   <div className="d">
-                    3 agents priced at $0.001 / $0.05 / $0.01 — versus 5-7% from
-                    Western Union.
+                    3 agents priced at $0.001 / $0.05 / $0.01. Western Union
+                    charges 5 to 7%.
                   </div>
                 </div>
               </div>
@@ -399,9 +399,9 @@ export default function HomePage() {
             </h2>
             <p className="lede" data-rev data-d="2">
               LATAM migrant workers send $63B/year through Western Union,
-              MoneyGram, and a dozen apps. Fees average 5–7%, delivery takes 1
-              to 7 days, and senders have zero visibility into which corridor
-              is best for their specific transfer.
+              MoneyGram, and a dozen apps. Fees average 5 to 7%, delivery
+              takes 1 to 7 days, and senders have zero visibility into which
+              corridor is best for their specific transfer.
             </p>
           </div>
           <div className="prob-grid" data-rev data-d="3">
@@ -433,8 +433,9 @@ export default function HomePage() {
               <div className="ico">▸ pain · 04</div>
               <h4>Manual everything</h4>
               <p>
-                The user opens an app, fills forms, accepts terms — no agent
-                layer. Every transfer is a fresh customer-service ticket.
+                The user opens an app, fills forms, accepts terms. There is
+                no agent layer. Every transfer is a fresh customer-service
+                ticket.
               </p>
             </div>
           </div>
@@ -455,7 +456,7 @@ export default function HomePage() {
             <p className="lede" data-rev data-d="2">
               The live demo walks through these four phases. Every actual HTTP
               request, response, FX rate, and onchain tx is visible in the right
-              column — copyable JSON, verifiable on KiteScan + Snowtrace.
+              column. Copyable JSON, verifiable on KiteScan and Snowtrace.
             </p>
           </div>
           <div className="pipeline" data-rev data-d="3">
@@ -497,7 +498,7 @@ export default function HomePage() {
                 <div className="ph-name">Server-side typed sig</div>
                 <div className="ph-desc">
                   signTypedData against the PYUSD contract. Pure local
-                  cryptography — no network call, no money moves yet.
+                  cryptography. No network call, no money moves yet.
                 </div>
               </div>
               <div className="phase">
@@ -728,7 +729,7 @@ export default function HomePage() {
                 <div className="icn">asset · 02</div>
                 <h4>PYUSD canonical stablecoin</h4>
                 <p>
-                  USD-pegged — matches remittance UX where senders think in
+                  USD-pegged. Matches remittance UX where senders think in
                   dollars.
                 </p>
               </div>

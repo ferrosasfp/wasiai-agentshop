@@ -161,7 +161,7 @@ export default function DemoPage() {
         Pick a remittance. Watch the agents shop the marketplace.
       </h1>
       <p className="text-sm text-muted mb-12 max-w-3xl">
-        We&rsquo;ll walk through <span className="font-medium text-ink">4 phases</span> —
+        We&rsquo;ll walk through <span className="font-medium text-ink">4 phases</span>:
         discovery, agent shopping, authorization, settlement. Each phase reveals live in the
         right column as it happens. Three autonomous agents (KYC compliance, corridor
         discovery, cash-out matching) are paid in PYUSD on Kite Ozone via{" "}

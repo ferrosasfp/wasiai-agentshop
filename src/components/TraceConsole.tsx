@@ -28,7 +28,7 @@ const SECTIONS: Array<{
     title: "Agents shopping the marketplace",
     subtitle: "POST /compose × 3 · debits A2A_KEY budget",
     tooltip:
-      "Three /compose calls to wasiai-a2a. The gateway routes each to the agent's endpoint and debits the A2A_KEY budget. Each agent returns a PLAN (KYC outcome, ranked corridors, picked partner). No money to receiver moves yet — that's sección 04.",
+      "Three /compose calls to wasiai-a2a. The gateway routes each to the agent's endpoint and debits the A2A_KEY budget. Each agent returns a PLAN (KYC outcome, ranked corridors, picked partner). No money to receiver moves yet. That happens in sección 04.",
   },
   {
     id: "03",

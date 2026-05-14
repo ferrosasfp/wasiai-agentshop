@@ -28,7 +28,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <InfoTooltip>
           Three autonomous agents run via wasiai-a2a /compose. Each one (KYC compliance,
           corridor discovery, cash-out matching) is paid in PYUSD from the chatbot&apos;s
-          A2A_KEY budget. They return a PLAN — partner, fees, amount delivered — but no
+          A2A_KEY budget. They return a PLAN (partner, fees, amount delivered), but no
           money moves yet. Money moves in sección 04.
         </InfoTooltip>
       </div>
