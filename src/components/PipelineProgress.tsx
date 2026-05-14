@@ -95,7 +95,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
                 <strong>{match.estimatedPayoutMinutes}min</strong>
               </div>
               <div className="serif text-2xl">
-                {formatLocalCurrency(match.netDeliveredMXN, receiverCountry)}{" "}
+                {formatLocalCurrency(match.netDeliveredLocal, receiverCountry)}{" "}
                 <span className="text-xs mono text-muted ml-2">
                   net delivered
                 </span>

@@ -41,7 +41,7 @@ export function Settlement({
           {match ? (
             <>
               <div className="serif text-3xl mb-1">
-                {formatLocalCurrency(match.netDeliveredMXN, receiverCountry)} delivered
+                {formatLocalCurrency(match.netDeliveredLocal, receiverCountry)} delivered
               </div>
               <div className="text-xs mono text-muted mb-6">
                 via {receipt.corridor} → {match.partnerName} · payout in{" "}

@@ -62,7 +62,8 @@ export interface CashOutMatch {
   cityCoverage: string;
   recipientFee: number;
   estimatedPayoutMinutes: number;
-  netDeliveredMXN: number;
+  netDeliveredLocal: number;
+  localCurrency: "MXN" | "COP" | "PEN" | "ARS";
   netDeliveredUSD: number;
   exchangeRate: number;
 }

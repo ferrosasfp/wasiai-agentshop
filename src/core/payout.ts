@@ -1,4 +1,5 @@
 import type { CashOutMatch, Corridor, Remittance } from "@/types/remittance";
+import { getCurrencyFor } from "@/infra/fx-rates";
 
 export interface PartnerCatalogEntry {
   id: string;
@@ -91,7 +92,8 @@ export function buildCashOutMatch(args: {
   const corridorCost = round2(corridor.feeFlatUSD + pctFee);
   const netAfterCorridor = remittance.amountUSD - corridorCost;
   const netAfterPartner = netAfterCorridor - partner.fee;
-  const netDeliveredMXN = Math.round(netAfterPartner * corridor.fxRate * 100) / 100;
+  const netDeliveredLocal = Math.round(netAfterPartner * corridor.fxRate * 100) / 100;
+  const localCurrency = getCurrencyFor(remittance.receiver.country);
 
   return {
     partnerId: partner.id,
@@ -100,7 +102,8 @@ export function buildCashOutMatch(args: {
     cityCoverage: remittance.receiver.city,
     recipientFee: partner.fee,
     estimatedPayoutMinutes: partner.payoutMinutes,
-    netDeliveredMXN,
+    netDeliveredLocal,
+    localCurrency,
     netDeliveredUSD: round2(netAfterPartner),
     exchangeRate: corridor.fxRate,
   };
