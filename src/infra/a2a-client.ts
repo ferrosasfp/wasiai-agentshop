@@ -25,24 +25,49 @@ export interface ComposeResponse {
   error?: string;
 }
 
+export interface ComposeTraceData {
+  url: string;
+  requestBody: { steps: ComposeStep[] };
+  responseBody: ComposeResponse;
+  status: number;
+  latencyMs: number;
+}
+
 export async function composeOnA2A(
   steps: ComposeStep[],
-  opts?: { chainKey?: string },
+  opts?: { chainKey?: string; trace?: { current?: ComposeTraceData } },
 ): Promise<ComposeResponse> {
-  const headers: Record<string, string> = {
+  const url = `${A2A_URL}/compose`;
+  const started = Date.now();
+  const realHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     "x-a2a-key": A2A_KEY,
   };
-  if (opts?.chainKey) {
-    headers["x-payment-chain"] = opts.chainKey;
-  }
-  const res = await fetch(`${A2A_URL}/compose`, {
+  if (opts?.chainKey) realHeaders["x-payment-chain"] = opts.chainKey;
+
+  const res = await fetch(url, {
     method: "POST",
-    headers,
+    headers: realHeaders,
     body: JSON.stringify({ steps }),
   });
-  if (!res.ok) {
-    throw new Error(`A2A compose failed: ${res.status} ${await res.text()}`);
+  const text = await res.text();
+  let parsed: ComposeResponse;
+  try {
+    parsed = JSON.parse(text) as ComposeResponse;
+  } catch {
+    throw new Error(`A2A compose returned non-JSON: ${res.status} ${text.slice(0, 200)}`);
   }
-  return (await res.json()) as ComposeResponse;
+  if (opts?.trace) {
+    opts.trace.current = {
+      url,
+      requestBody: { steps },
+      responseBody: parsed,
+      status: res.status,
+      latencyMs: Date.now() - started,
+    };
+  }
+  if (!res.ok) {
+    throw new Error(`A2A compose failed: ${res.status} ${text.slice(0, 200)}`);
+  }
+  return parsed;
 }

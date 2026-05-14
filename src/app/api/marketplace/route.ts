@@ -71,15 +71,38 @@ export async function GET() {
     (slug) => agents.find((a) => a.slug === slug) ?? STATIC_FALLBACK.find((a) => a.slug === slug)!,
   );
 
+  const latencyMs = Date.now() - started;
   const body: DiscoveryResponse = {
     agents: ordered,
     totalEstimatedFee: ordered.reduce((sum, a) => sum + (a.priceUsdc ?? 0), 0),
     discoveryEndpoint: `${A2A_URL}/discover`,
     composeEndpoint: `${A2A_URL}/compose`,
     facilitatorEndpoint: "https://wasiai-facilitator-production.up.railway.app",
-    latencyMs: Date.now() - started,
+    latencyMs,
     registry,
   };
 
-  return NextResponse.json(body);
+  return NextResponse.json({
+    ...body,
+    trace: {
+      step: "marketplace · discover agents",
+      endpoint: `GET ${A2A_URL}/discover?capabilities=remittance&limit=10`,
+      request: {
+        method: "GET",
+        url: `${A2A_URL}/discover?capabilities=remittance&limit=10`,
+      },
+      response: {
+        status: 200,
+        body: { agents: ordered.map((a) => ({ slug: a.slug, priceUsdc: a.priceUsdc, payment: a.payment })) },
+        summary: `${ordered.length} agents · registry ${registry}`,
+      },
+      metadata: {
+        source: "discovery",
+        latencyMs,
+        chain: "kite-ozone-testnet",
+        asset: "PYUSD",
+      },
+      timestamp: new Date().toISOString(),
+    },
+  });
 }

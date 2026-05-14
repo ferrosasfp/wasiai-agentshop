@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { RemittancePicker } from "@/components/RemittancePicker";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { Settlement } from "@/components/Settlement";
 import { MarketplacePanel } from "@/components/MarketplacePanel";
+import { TraceConsole } from "@/components/TraceConsole";
 import type {
   CashOutMatch,
   CorridorDiscoveryResult,
@@ -13,6 +14,7 @@ import type {
   Remittance,
   SettlementReceipt,
 } from "@/types/remittance";
+import type { TraceEvent } from "@/types/trace";
 
 type RunMeta = { source?: string; latencyMs?: number };
 
@@ -25,6 +27,12 @@ export default function DemoPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [traces, setTraces] = useState<TraceEvent[]>([]);
+
+  const addTrace = useCallback((t: TraceEvent | undefined) => {
+    if (!t) return;
+    setTraces((prev) => [...prev, t]);
+  }, []);
 
   async function runPipeline(rem: Remittance) {
     setRemittance(rem);
@@ -42,12 +50,13 @@ export default function DemoPage() {
         body: JSON.stringify({ remittance: rem }),
       }).then((r) => r.json());
       setKyc(kycRes.result);
+      addTrace(kycRes.trace);
 
       if (!kycRes.result?.isCompliant) {
         setError(`KYC blocked: ${kycRes.result?.reason ?? "unknown reason"}`);
         return;
       }
-      await sleep(400);
+      await sleep(200);
 
       const corRes = await fetch("/api/discover", {
         method: "POST",
@@ -55,7 +64,8 @@ export default function DemoPage() {
         body: JSON.stringify({ remittance: rem }),
       }).then((r) => r.json());
       setCorridor(corRes.result);
-      await sleep(400);
+      addTrace(corRes.trace);
+      await sleep(200);
 
       const matchRes = await fetch("/api/match", {
         method: "POST",
@@ -63,6 +73,7 @@ export default function DemoPage() {
         body: JSON.stringify({ remittance: rem, corridor: corRes.result }),
       }).then((r) => r.json());
       setMatch(matchRes.result);
+      addTrace(matchRes.trace);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Pipeline failed");
     } finally {
@@ -78,14 +89,10 @@ export default function DemoPage() {
       const res = await fetch("/api/settle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          remittance,
-          corridor,
-          match,
-          // Demo mode skips real signing; real mode would inject signed EIP-3009 here
-        }),
+        body: JSON.stringify({ remittance, corridor, match }),
       }).then((r) => r.json());
       setReceipt(res.receipt);
+      addTrace(res.trace);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Settle failed");
     } finally {
@@ -94,51 +101,58 @@ export default function DemoPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-12 md:px-16 md:py-16 max-w-4xl mx-auto">
+    <main className="min-h-screen px-6 py-12 md:px-12 md:py-16 max-w-[1600px] mx-auto">
       <Link href="/" className="text-xs mono uppercase tracking-widest text-muted hover:text-ink">
         ← WasiAgentShop
       </Link>
 
-      <h1 className="serif text-4xl md:text-5xl mt-8 mb-4 leading-tight">
+      <h1 className="serif text-4xl md:text-5xl mt-8 mb-4 leading-tight max-w-4xl">
         Pick a remittance. Watch the agents shop the marketplace.
       </h1>
-      <p className="text-sm text-muted mb-12 max-w-2xl">
+      <p className="text-sm text-muted mb-12 max-w-3xl">
         Three autonomous agents work in sequence: KYC compliance, corridor discovery, and
         cash-out matching — each paid in PYUSD on Kite Ozone. Final settlement is a gasless
-        EIP-3009 transfer to the receiver.
+        EIP-3009 transfer. The right column shows the actual /discover, /compose and /settle
+        calls happening in real time.
       </p>
 
-      <div className="space-y-12">
-        <MarketplacePanel />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3 space-y-10">
+          <MarketplacePanel onTrace={addTrace} />
 
-        <RemittancePicker onSelect={runPipeline} disabled={isRunning || isSettling} />
+          <RemittancePicker onSelect={runPipeline} disabled={isRunning || isSettling} />
 
-        {remittance && (
-          <PipelineProgress
-            kyc={kyc}
-            corridor={corridor}
-            match={match}
-            isRunning={isRunning}
-            receiverCountry={remittance.receiver.country}
-          />
-        )}
+          {remittance && (
+            <PipelineProgress
+              kyc={kyc}
+              corridor={corridor}
+              match={match}
+              isRunning={isRunning}
+              receiverCountry={remittance.receiver.country}
+            />
+          )}
 
-        {match && remittance && (
-          <Settlement
-            receipt={receipt}
-            match={match}
-            receiverCountry={remittance.receiver.country}
-            onSettle={handleSettle}
-            canSettle={!!match}
-            isSettling={isSettling}
-          />
-        )}
+          {match && remittance && (
+            <Settlement
+              receipt={receipt}
+              match={match}
+              receiverCountry={remittance.receiver.country}
+              onSettle={handleSettle}
+              canSettle={!!match}
+              isSettling={isSettling}
+            />
+          )}
 
-        {error && (
-          <div className="border border-red-500 p-4 text-sm text-red-600 mono">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="border border-red-500 p-4 text-sm text-red-600 mono">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <div className="lg:col-span-2">
+          <TraceConsole traces={traces} />
+        </div>
       </div>
     </main>
   );

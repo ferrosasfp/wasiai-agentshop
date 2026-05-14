@@ -14,5 +14,5 @@ export async function POST(req: Request) {
     );
   }
   const result = await matchCashOut(body.remittance, body.corridor);
-  return NextResponse.json({ result });
+  return NextResponse.json({ result, trace: result.trace });
 }

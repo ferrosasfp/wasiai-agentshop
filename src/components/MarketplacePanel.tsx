@@ -19,19 +19,28 @@ interface DiscoveryResponse {
   registry: string;
 }
 
-export function MarketplacePanel() {
+import type { TraceEvent } from "@/types/trace";
+
+interface MarketplacePanelProps {
+  onTrace?: (trace: TraceEvent) => void;
+}
+
+export function MarketplacePanel({ onTrace }: MarketplacePanelProps = {}) {
   const [data, setData] = useState<DiscoveryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/marketplace")
       .then((r) => r.json())
-      .then((d) => setData(d))
+      .then((d) => {
+        setData(d);
+        if (d.trace && onTrace) onTrace(d.trace as TraceEvent);
+      })
       .catch(() => {
         /* silent fallback to loading state — UI will retry next time */
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [onTrace]);
 
   return (
     <div>

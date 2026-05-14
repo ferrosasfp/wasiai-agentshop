@@ -8,5 +8,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "remittance required" }, { status: 400 });
   }
   const result = await runKyc(body.remittance);
-  return NextResponse.json({ result });
+  return NextResponse.json({ result, trace: result.trace });
 }
