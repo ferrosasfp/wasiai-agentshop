@@ -24,24 +24,28 @@ import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface MarketplacePanelProps {
   onTrace?: (trace: TraceEvent) => void;
+  trigger?: number; // bump this number to (re-)trigger discovery
 }
 
-export function MarketplacePanel({ onTrace }: MarketplacePanelProps = {}) {
+export function MarketplacePanel({ onTrace, trigger = 0 }: MarketplacePanelProps = {}) {
   const [data, setData] = useState<DiscoveryResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/marketplace")
+    if (trigger === 0) return;
+    setLoading(true);
+    setData(null);
+    fetch("/api/marketplace", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         setData(d);
         if (d.trace && onTrace) onTrace(d.trace as TraceEvent);
       })
       .catch(() => {
-        /* silent fallback to loading state — UI will retry next time */
+        /* silent fallback */
       })
       .finally(() => setLoading(false));
-  }, [onTrace]);
+  }, [trigger, onTrace]);
 
   return (
     <div>
@@ -63,7 +67,7 @@ export function MarketplacePanel({ onTrace }: MarketplacePanelProps = {}) {
               ? "Discovering agents..."
               : data
                 ? `Discovered ${data.agents.length} agents`
-                : "Marketplace offline · using fallback"}
+                : "Idle · press Start to discover"}
           </div>
           <div className="text-xs mono text-muted">
             {data ? `${data.latencyMs}ms via /discover` : "—"}

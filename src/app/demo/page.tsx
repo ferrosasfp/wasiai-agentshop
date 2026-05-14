@@ -19,6 +19,7 @@ import type { TraceEvent } from "@/types/trace";
 type RunMeta = { source?: string; latencyMs?: number };
 
 export default function DemoPage() {
+  const [started, setStarted] = useState(0);
   const [remittance, setRemittance] = useState<Remittance | null>(null);
   const [kyc, setKyc] = useState<(KycResult & RunMeta) | null>(null);
   const [corridor, setCorridor] = useState<(CorridorDiscoveryResult & RunMeta) | null>(null);
@@ -33,6 +34,17 @@ export default function DemoPage() {
     if (!t) return;
     setTraces((prev) => [...prev, t]);
   }, []);
+
+  function handleStart() {
+    setStarted((n) => n + 1);
+    setRemittance(null);
+    setKyc(null);
+    setCorridor(null);
+    setMatch(null);
+    setReceipt(null);
+    setError(null);
+    setTraces([]);
+  }
 
   async function runPipeline(rem: Remittance) {
     setRemittance(rem);
@@ -120,11 +132,28 @@ export default function DemoPage() {
         calls happening in real time.
       </p>
 
+      <div className="mb-10 flex items-center gap-4">
+        <button
+          type="button"
+          onClick={handleStart}
+          className="bg-ink text-paper px-8 py-3 mono text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+        >
+          {started === 0 ? "▶ Start the demo" : "↻ Restart"}
+        </button>
+        {started > 0 && (
+          <span className="text-xs mono text-muted">
+            run #{started} · click restart to clean state and re-run
+          </span>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <div className="lg:col-span-3 space-y-10">
-          <MarketplacePanel onTrace={addTrace} />
+          <MarketplacePanel onTrace={addTrace} trigger={started} />
 
-          <RemittancePicker onSelect={runPipeline} disabled={isRunning || isSettling} />
+          {started > 0 && (
+            <RemittancePicker onSelect={runPipeline} disabled={isRunning || isSettling} />
+          )}
 
           {remittance && (
             <PipelineProgress
