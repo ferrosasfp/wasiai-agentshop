@@ -6,11 +6,23 @@ export interface ComposeStep {
   input: Record<string, unknown>;
 }
 
+export interface ComposeStepResult {
+  agent: unknown;
+  output: Record<string, unknown>;
+  costUsdc?: number;
+  latencyMs?: number;
+  downstreamTxHash?: `0x${string}`;
+  downstreamBlockNumber?: number;
+  downstreamSettledAmount?: string;
+}
+
 export interface ComposeResponse {
-  results: Array<{
-    agent: string;
-    output: Record<string, unknown>;
-  }>;
+  success: boolean;
+  output: Record<string, unknown>;
+  steps: ComposeStepResult[];
+  totalCostUsdc: number;
+  totalLatencyMs: number;
+  error?: string;
 }
 
 export async function composeOnA2A(

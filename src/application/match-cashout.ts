@@ -37,7 +37,7 @@ export async function matchCashOut(
       ],
       { chainKey: "kite-ozone-testnet" },
     );
-    const result = response.results[0].output as unknown as CashOutMatch;
+    const result = response.steps[0].output as unknown as CashOutMatch;
     return { ...result, source: "a2a-compose", latencyMs: Date.now() - started };
   } catch (err) {
     console.warn("[match-cashout] a2a /compose failed, mock fallback:", err);

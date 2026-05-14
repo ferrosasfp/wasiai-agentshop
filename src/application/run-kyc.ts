@@ -31,7 +31,7 @@ export async function runKyc(remittance: Remittance): Promise<KycRun> {
       ],
       { chainKey: "kite-ozone-testnet" },
     );
-    const result = response.results[0].output as unknown as KycResult;
+    const result = response.steps[0].output as unknown as KycResult;
     return { ...result, source: "a2a-compose", latencyMs: Date.now() - started };
   } catch (err) {
     console.warn("[run-kyc] a2a /compose failed, mock fallback:", err);
