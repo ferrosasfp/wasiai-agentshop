@@ -1,4 +1,7 @@
+export type TraceSection = "00" | "02" | "03" | "04";
+
 export interface TraceEvent {
+  section: TraceSection;
   step: string;
   endpoint: string;
   request?: {

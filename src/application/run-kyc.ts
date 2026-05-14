@@ -20,6 +20,7 @@ export async function runKyc(remittance: Remittance): Promise<KycRun> {
     purpose: remittance.purpose,
   };
   const step = "agentshop-kyc-validator";
+  const section = "02" as const;
 
   if (isDemoMode() || !A2A_KEY) {
     const result = mockKyc(remittance);
@@ -27,6 +28,7 @@ export async function runKyc(remittance: Remittance): Promise<KycRun> {
       ...result,
       source: "demo-mode",
       trace: {
+        section,
         step,
         endpoint: "mock (NEXT_PUBLIC_DEMO_MODE=true)",
         request: { body: baseInput },
@@ -51,6 +53,7 @@ export async function runKyc(remittance: Remittance): Promise<KycRun> {
       source: "a2a-compose",
       latencyMs: Date.now() - started,
       trace: {
+        section,
         step,
         endpoint: `POST ${A2A_URL}/compose`,
         request: {
@@ -86,6 +89,7 @@ export async function runKyc(remittance: Remittance): Promise<KycRun> {
       source: "mock-fallback",
       latencyMs: Date.now() - started,
       trace: {
+        section,
         step,
         endpoint: `POST ${A2A_URL}/compose`,
         request: { body: baseInput },

@@ -26,6 +26,7 @@ export async function matchCashOut(
       (remittance.amountUSD * corridorDiscovery.recommended.feePctBps) / 10_000,
   };
   const step = "agentshop-cashout-matcher";
+  const section = "02" as const;
 
   if (isDemoMode() || !A2A_KEY) {
     const result = mockCashOutMatch(remittance, corridorDiscovery);
@@ -33,6 +34,7 @@ export async function matchCashOut(
       ...result,
       source: "demo-mode",
       trace: {
+        section,
         step,
         endpoint: "mock (NEXT_PUBLIC_DEMO_MODE=true)",
         request: { body: baseInput },
@@ -57,6 +59,7 @@ export async function matchCashOut(
       source: "a2a-compose",
       latencyMs: Date.now() - started,
       trace: {
+        section,
         step,
         endpoint: `POST ${A2A_URL}/compose`,
         request: {
@@ -92,6 +95,7 @@ export async function matchCashOut(
       source: "mock-fallback",
       latencyMs: Date.now() - started,
       trace: {
+        section,
         step,
         endpoint: `POST ${A2A_URL}/compose`,
         request: { body: baseInput },

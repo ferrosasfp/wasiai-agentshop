@@ -1,17 +1,44 @@
 "use client";
 
-import type { TraceEvent } from "@/types/trace";
+import type { TraceEvent, TraceSection } from "@/types/trace";
 
 interface Props {
   traces: TraceEvent[];
 }
 
+const SECTIONS: Array<{
+  id: TraceSection;
+  title: string;
+  subtitle: string;
+}> = [
+  {
+    id: "00",
+    title: "Marketplace · WasiAI A2A",
+    subtitle: "GET /discover · agent lookup",
+  },
+  {
+    id: "02",
+    title: "Agents shopping the marketplace",
+    subtitle: "POST /compose × 3 · debits A2A_KEY budget",
+  },
+  {
+    id: "03",
+    title: "Authorize the payout",
+    subtitle: "EIP-3009 signature built server-side",
+  },
+  {
+    id: "04",
+    title: "Settled onchain",
+    subtitle: "POST facilitator/settle · KiteScan tx",
+  },
+];
+
 const SOURCE_COLOR: Record<string, string> = {
   "a2a-compose": "text-emerald-400",
   "mock-fallback": "text-amber-400",
   "demo-mode": "text-sky-400",
-  "facilitator": "text-fuchsia-400",
-  "discovery": "text-indigo-400",
+  facilitator: "text-fuchsia-400",
+  discovery: "text-indigo-400",
 };
 
 function sourceClass(source?: string): string {
@@ -28,25 +55,59 @@ function prettyJSON(value: unknown): string {
 }
 
 export function TraceConsole({ traces }: Props) {
+  const grouped = SECTIONS.map((s) => ({
+    ...s,
+    events: traces.filter((t) => t.section === s.id),
+  }));
+
   return (
     <div className="lg:sticky lg:top-6 self-start">
       <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
         ⌗ Inside the call · live trace
       </div>
-      <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 max-h-[80vh] overflow-y-auto">
-        {traces.length === 0 ? (
-          <div className="p-6 text-slate-500 text-xs mono">
-            Waiting for activity. Pick a remittance to see real /discover, /compose
-            and /settle calls + responses + onchain receipts.
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-800">
-            {traces.map((t, i) => (
-              <TraceItem key={`${t.step}-${i}-${t.timestamp}`} t={t} index={i} />
-            ))}
-          </div>
-        )}
+      <div className="space-y-3">
+        {grouped.map((g) => (
+          <SectionBlock key={g.id} {...g} />
+        ))}
       </div>
+    </div>
+  );
+}
+
+function SectionBlock({
+  id,
+  title,
+  subtitle,
+  events,
+}: {
+  id: TraceSection;
+  title: string;
+  subtitle: string;
+  events: TraceEvent[];
+}) {
+  return (
+    <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 overflow-hidden">
+      <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/50">
+        <div className="flex items-baseline gap-3">
+          <span className="mono text-[10px] uppercase tracking-widest text-slate-400">
+            {id}
+          </span>
+          <span className="font-medium text-sm text-slate-100">{title}</span>
+        </div>
+        <div className="mono text-[10px] text-slate-500 mt-1">{subtitle}</div>
+      </div>
+
+      {events.length === 0 ? (
+        <div className="p-4 text-slate-500 text-[10px] mono italic">
+          waiting...
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-800">
+          {events.map((t, i) => (
+            <TraceItem key={`${id}-${i}-${t.timestamp}`} t={t} index={i} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -58,9 +119,7 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
   return (
     <div className="p-4">
       <div className="flex items-center gap-3 mb-2">
-        <span className="text-slate-500 mono text-[10px]">
-          #{index + 1}
-        </span>
+        <span className="text-slate-500 mono text-[10px]">#{index + 1}</span>
         <span className="text-slate-400 mono text-[10px]">{time}</span>
         <span className="ml-auto text-[10px] mono">
           {t.metadata?.latencyMs ? (
@@ -79,10 +138,12 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
           {t.metadata?.source ?? "live"}
         </span>
       </div>
-      <div className="text-slate-500 mono text-[10px] mb-3 break-all">{t.endpoint}</div>
+      <div className="text-slate-500 mono text-[10px] mb-3 break-all">
+        {t.endpoint}
+      </div>
 
       {t.request?.body !== undefined && (
-        <details className="mb-2" open={index < 2}>
+        <details className="mb-2" open={index === 0}>
           <summary className="text-slate-400 mono text-[10px] cursor-pointer hover:text-slate-200">
             → request
           </summary>
@@ -100,7 +161,7 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
       )}
 
       {(t.response?.body !== undefined || t.response?.summary) && (
-        <details open={index < 2}>
+        <details open={index === 0}>
           <summary className="text-slate-400 mono text-[10px] cursor-pointer hover:text-slate-200">
             ← response{t.response?.status ? ` ${t.response.status}` : ""}
           </summary>
@@ -132,7 +193,8 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
             rel="noopener noreferrer"
             className="text-fuchsia-400 underline hover:text-fuchsia-300 break-all"
           >
-            {t.metadata.downstreamTxHash.slice(0, 14)}...{t.metadata.downstreamTxHash.slice(-8)}
+            {t.metadata.downstreamTxHash.slice(0, 14)}...
+            {t.metadata.downstreamTxHash.slice(-8)}
           </a>
           {t.metadata.downstreamBlockNumber ? (
             <span className="text-slate-500">

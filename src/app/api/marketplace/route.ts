@@ -133,6 +133,7 @@ export async function GET() {
   return NextResponse.json({
     ...body,
     trace: {
+      section: "00",
       step: "marketplace · discover agents",
       endpoint: `GET ${A2A_URL}/discover?capabilities=remittance&limit=10`,
       request: {

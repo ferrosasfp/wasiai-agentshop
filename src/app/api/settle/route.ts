@@ -32,6 +32,7 @@ export async function POST(req: Request) {
     });
     const onchainAmount = Math.min(body.match.netDeliveredUSD, ONCHAIN_AMOUNT_CAP_PYUSD);
     const trace: TraceEvent = {
+      section: "04",
       step: "wasiai-facilitator · settle",
       endpoint: `POST ${FACILITATOR_URL}/settle`,
       request: {

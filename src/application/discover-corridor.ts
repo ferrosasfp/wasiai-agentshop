@@ -18,6 +18,7 @@ export async function discoverCorridor(remittance: Remittance): Promise<Corridor
     prioritizeSpeed: true,
   };
   const step = "agentshop-corridor-discoverer";
+  const section = "02" as const;
 
   if (isDemoMode() || !A2A_KEY) {
     const result = mockCorridorDiscovery(remittance);
@@ -25,6 +26,7 @@ export async function discoverCorridor(remittance: Remittance): Promise<Corridor
       ...result,
       source: "demo-mode",
       trace: {
+        section,
         step,
         endpoint: "mock (NEXT_PUBLIC_DEMO_MODE=true)",
         request: { body: baseInput },
@@ -49,6 +51,7 @@ export async function discoverCorridor(remittance: Remittance): Promise<Corridor
       source: "a2a-compose",
       latencyMs: Date.now() - started,
       trace: {
+        section,
         step,
         endpoint: `POST ${A2A_URL}/compose`,
         request: {
@@ -84,6 +87,7 @@ export async function discoverCorridor(remittance: Remittance): Promise<Corridor
       source: "mock-fallback",
       latencyMs: Date.now() - started,
       trace: {
+        section,
         step,
         endpoint: `POST ${A2A_URL}/compose`,
         request: { body: baseInput },
