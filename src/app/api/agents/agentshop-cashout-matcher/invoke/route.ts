@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { applyMidMarketRate } from "@/core/corridor";
 import { buildCashOutMatch, pickPartner } from "@/core/payout";
+import { getRateFor } from "@/infra/fx-rates";
 import { MOCK_CORRIDORS } from "@/lib/mock-data";
 import type { CashOutMatch, Remittance } from "@/types/remittance";
 
@@ -24,8 +26,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const corridor =
+  const baseCorridor =
     MOCK_CORRIDORS.find((c) => c.id === input.corridorId) ?? MOCK_CORRIDORS[1];
+  const midRate = await getRateFor(input.receiverCountry);
+  const corridor = applyMidMarketRate(baseCorridor, midRate);
+
   const fakeRemittance: Remittance = {
     id: "agent-call",
     sender: { name: "x", country: "US", legalId: "x" },

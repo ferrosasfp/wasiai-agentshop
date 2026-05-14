@@ -57,12 +57,22 @@ export const MOCK_REMITTANCES: Remittance[] = [
   },
 ];
 
+/**
+ * @deprecated Use applyMidMarketRateAll + live FX. These rates are stale.
+ * Each corridor has a `spreadBps` (basis points off mid-market) and `fxRate=0`
+ * is a placeholder. The agent endpoints fetch the live mid-market rate from
+ * open.er-api.com per receiver country and compute the effective rate as:
+ *   fxRate = midRate × (1 + spreadBps / 10_000)
+ * E.g. a corridor with spreadBps = -150 (Bitso) gives 1.5% less local currency
+ * than the spot reference rate.
+ */
 export const MOCK_CORRIDORS: Corridor[] = [
   {
     id: "cor-bitso-shift",
     name: "Bitso Shift",
     provider: "Bitso (LATAM crypto rails)",
-    fxRate: 18.85,
+    fxRate: 0,
+    spreadBps: -150,
     feeFlatUSD: 0.5,
     feePctBps: 25,
     speedSeconds: 12,
@@ -73,7 +83,8 @@ export const MOCK_CORRIDORS: Corridor[] = [
     id: "cor-felix-pay",
     name: "Felix Pay",
     provider: "Felix Pay (Stellar rails)",
-    fxRate: 19.05,
+    fxRate: 0,
+    spreadBps: -100,
     feeFlatUSD: 0,
     feePctBps: 45,
     speedSeconds: 8,
@@ -84,7 +95,8 @@ export const MOCK_CORRIDORS: Corridor[] = [
     id: "cor-wise",
     name: "Wise",
     provider: "Wise (TradFi multi-rail)",
-    fxRate: 18.62,
+    fxRate: 0,
+    spreadBps: -50,
     feeFlatUSD: 1.95,
     feePctBps: 65,
     speedSeconds: 21600,
@@ -95,7 +107,8 @@ export const MOCK_CORRIDORS: Corridor[] = [
     id: "cor-westernunion",
     name: "Western Union Digital",
     provider: "Western Union",
-    fxRate: 18.05,
+    fxRate: 0,
+    spreadBps: -700,
     feeFlatUSD: 4.99,
     feePctBps: 120,
     speedSeconds: 600,
@@ -103,5 +116,3 @@ export const MOCK_CORRIDORS: Corridor[] = [
     liquidityUSD: 80_000_000,
   },
 ];
-
-export const USDC_MXN_REFERENCE_RATE = 19.85;

@@ -1,8 +1,9 @@
 import { decideAmlOutcome, classifySenderTier } from "@/core/compliance";
-import { rankCorridors, totalCostUSD } from "@/core/corridor";
+import { applyMidMarketRateAll, rankCorridors, totalCostUSD } from "@/core/corridor";
 import { buildCashOutMatch, pickPartner } from "@/core/payout";
 import { kitescanUrl } from "@/core/settlement";
 import { MOCK_CORRIDORS } from "@/lib/mock-data";
+import { getCurrencyFor } from "@/infra/fx-rates";
 import type {
   CashOutMatch,
   CorridorDiscoveryResult,
@@ -40,13 +41,20 @@ export function mockKyc(remittance: Remittance): KycResult {
 }
 
 export function mockCorridorDiscovery(remittance: Remittance): CorridorDiscoveryResult {
-  const ranked = rankCorridors(MOCK_CORRIDORS, remittance.amountUSD, true);
+  // Mock uses static fallback rates (no network) — only kicks in when isDemoMode
+  // OR when a2a /compose fails. Real flow goes through the agent endpoint which
+  // fetches live FX from open.er-api.com.
+  const fallbackRates: Record<string, number> = { MX: 17.19, CO: 3778.6, PE: 3.43, AR: 1389.2 };
+  const midRate = fallbackRates[remittance.receiver.country] ?? 17.19;
+  const currency = getCurrencyFor(remittance.receiver.country);
+  const adjusted = applyMidMarketRateAll(MOCK_CORRIDORS, midRate);
+  const ranked = rankCorridors(adjusted, remittance.amountUSD, true);
   const recommended = ranked[0];
   const cost = totalCostUSD(recommended, remittance.amountUSD);
   return {
     shortlist: ranked.slice(0, 3),
     recommended,
-    rationale: `Top route is ${recommended.name} via ${recommended.provider}. Effective cost ${cost.toFixed(2)} USD on a ${remittance.amountUSD} USD transfer (${recommended.speedSeconds < 60 ? "sub-minute" : Math.round(recommended.speedSeconds / 60) + "min"} delivery, reliability ${(recommended.reliabilityScore * 100).toFixed(1)}%).`,
+    rationale: `Top route is ${recommended.name} via ${recommended.provider}. Effective USD/${currency} rate ${recommended.fxRate} (mid ${midRate.toFixed(4)}, fallback). Cost ${cost.toFixed(2)} USD on a ${remittance.amountUSD} USD transfer · ${recommended.speedSeconds < 60 ? "sub-minute" : Math.round(recommended.speedSeconds / 60) + "min"} delivery, reliability ${(recommended.reliabilityScore * 100).toFixed(1)}%.`,
     agentPromptId: `corridor-${recommended.id}-${Date.now()}`,
   };
 }

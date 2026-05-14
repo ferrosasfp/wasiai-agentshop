@@ -40,6 +40,7 @@ export interface Corridor {
   name: string;
   provider: string;
   fxRate: number;
+  spreadBps?: number; // basis points off mid-market (negative = worse for user)
   feeFlatUSD: number;
   feePctBps: number;
   speedSeconds: number;

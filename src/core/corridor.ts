@@ -1,5 +1,20 @@
 import type { Corridor } from "@/types/remittance";
 
+export function applyMidMarketRate(corridor: Corridor, midRate: number): Corridor {
+  const spread = corridor.spreadBps ?? 0;
+  return {
+    ...corridor,
+    fxRate: round4(midRate * (1 + spread / 10_000)),
+  };
+}
+
+export function applyMidMarketRateAll(
+  corridors: ReadonlyArray<Corridor>,
+  midRate: number,
+): Corridor[] {
+  return corridors.map((c) => applyMidMarketRate(c, midRate));
+}
+
 export interface CorridorScoreInput {
   corridor: Corridor;
   amountUSD: number;
