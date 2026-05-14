@@ -10,6 +10,7 @@
 |---|---|
 | **Live demo** | [`wasiai-agentshop.vercel.app`](https://wasiai-agentshop.vercel.app/) |
 | **Interactive walkthrough** | [`wasiai-agentshop.vercel.app/demo`](https://wasiai-agentshop.vercel.app/demo) |
+| **Demo video (3 min)** | [`youtu.be/Ydh_sEJXgt4`](https://www.youtube.com/watch?v=Ydh_sEJXgt4) |
 | **For judges** | see [SUBMISSION.md](./SUBMISSION.md) |
 | **Sample on-chain tx** | [`0xf3eaa00a…0f1d674`](https://testnet.kitescan.ai/tx/0xf3eaa00a7e83c41b2b9d8247e39d32f564b36cd8745f91e3c080ff23f0f1d674) on KiteScan |
 

@@ -2,6 +2,8 @@
 
 A 5-minute pass for judges. For the full README, see [README.md](./README.md).
 
+**🎬 Watch the 3-minute demo video**: https://www.youtube.com/watch?v=Ydh_sEJXgt4
+
 ---
 
 ## TL;DR
