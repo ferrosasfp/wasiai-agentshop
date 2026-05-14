@@ -5,6 +5,8 @@ import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface Props {
   traces: TraceEvent[];
+  activeSections?: Set<TraceSection>;
+  inFlightSections?: Set<TraceSection>;
 }
 
 const SECTIONS: Array<{
@@ -64,22 +66,39 @@ function prettyJSON(value: unknown): string {
   }
 }
 
-export function TraceConsole({ traces }: Props) {
+export function TraceConsole({
+  traces,
+  activeSections,
+  inFlightSections,
+}: Props) {
   const grouped = SECTIONS.map((s) => ({
     ...s,
     events: traces.filter((t) => t.section === s.id),
-  }));
+    isInFlight: inFlightSections?.has(s.id) ?? false,
+  })).filter(
+    (g) =>
+      g.events.length > 0 ||
+      activeSections?.has(g.id) ||
+      g.isInFlight,
+  );
 
   return (
     <div className="lg:sticky lg:top-6 self-start">
       <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
         ⌗ Inside the call · live trace
       </div>
-      <div className="space-y-3">
-        {grouped.map((g) => (
-          <SectionBlock key={g.id} {...g} />
-        ))}
-      </div>
+      {grouped.length === 0 ? (
+        <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 p-6 text-slate-500 text-xs mono">
+          Press <span className="text-slate-300">▶ Start the demo</span> to see real
+          /discover, /compose and /settle calls stream here in real time.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {grouped.map((g) => (
+            <SectionBlock key={g.id} {...g} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -90,15 +109,17 @@ function SectionBlock({
   subtitle,
   tooltip,
   events,
+  isInFlight,
 }: {
   id: TraceSection;
   title: string;
   subtitle: string;
   tooltip: string;
   events: TraceEvent[];
+  isInFlight: boolean;
 }) {
   return (
-    <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 overflow-visible">
+    <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 overflow-visible animate-in fade-in">
       <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/50 overflow-visible">
         <div className="flex items-baseline gap-2">
           <span className="mono text-[10px] uppercase tracking-widest text-slate-400">
@@ -113,8 +134,15 @@ function SectionBlock({
       </div>
 
       {events.length === 0 ? (
-        <div className="p-4 text-slate-500 text-[10px] mono italic">
-          waiting...
+        <div className="p-4 text-[10px] mono">
+          {isInFlight ? (
+            <span className="text-amber-400 inline-flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              running...
+            </span>
+          ) : (
+            <span className="text-slate-500 italic">waiting...</span>
+          )}
         </div>
       ) : (
         <div className="divide-y divide-slate-800">

@@ -14,7 +14,7 @@ import type {
   Remittance,
   SettlementReceipt,
 } from "@/types/remittance";
-import type { TraceEvent } from "@/types/trace";
+import type { TraceEvent, TraceSection } from "@/types/trace";
 
 type RunMeta = { source?: string; latencyMs?: number };
 
@@ -29,11 +29,37 @@ export default function DemoPage() {
   const [isSettling, setIsSettling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [traces, setTraces] = useState<TraceEvent[]>([]);
+  const [activeSections, setActiveSections] = useState<Set<TraceSection>>(new Set());
+  const [inFlightSections, setInFlightSections] = useState<Set<TraceSection>>(new Set());
 
   const addTrace = useCallback((t: TraceEvent | undefined) => {
     if (!t) return;
     setTraces((prev) => [...prev, t]);
+    // When a section's first trace arrives, drop in-flight indicator for 00.
+    // (02 keeps "running" until full pipeline finishes; handled in finally block.)
+    if (t.section === "00") {
+      setInFlightSections((prev) => {
+        const next = new Set(prev);
+        next.delete("00");
+        return next;
+      });
+    }
   }, []);
+
+  function activate(section: TraceSection, inFlight = true) {
+    setActiveSections((prev) => new Set([...prev, section]));
+    if (inFlight) {
+      setInFlightSections((prev) => new Set([...prev, section]));
+    }
+  }
+
+  function finish(section: TraceSection) {
+    setInFlightSections((prev) => {
+      const next = new Set(prev);
+      next.delete(section);
+      return next;
+    });
+  }
 
   function handleStart() {
     setStarted((n) => n + 1);
@@ -44,6 +70,8 @@ export default function DemoPage() {
     setReceipt(null);
     setError(null);
     setTraces([]);
+    setActiveSections(new Set(["00"]));
+    setInFlightSections(new Set(["00"]));
   }
 
   async function runPipeline(rem: Remittance) {
@@ -54,6 +82,7 @@ export default function DemoPage() {
     setReceipt(null);
     setError(null);
     setIsRunning(true);
+    activate("02", true);
 
     try {
       const kycRes = await fetch("/api/kyc", {
@@ -90,6 +119,7 @@ export default function DemoPage() {
       setError(e instanceof Error ? e.message : "Pipeline failed");
     } finally {
       setIsRunning(false);
+      finish("02");
     }
   }
 
@@ -97,6 +127,8 @@ export default function DemoPage() {
     if (!remittance || !corridor || !match) return;
     setIsSettling(true);
     setError(null);
+    activate("03", true);
+    activate("04", true);
     try {
       const res = await fetch("/api/settle", {
         method: "POST",
@@ -113,6 +145,8 @@ export default function DemoPage() {
       setError(e instanceof Error ? e.message : "Settle failed");
     } finally {
       setIsSettling(false);
+      finish("03");
+      finish("04");
     }
   }
 
@@ -126,10 +160,13 @@ export default function DemoPage() {
         Pick a remittance. Watch the agents shop the marketplace.
       </h1>
       <p className="text-sm text-muted mb-12 max-w-3xl">
-        Three autonomous agents work in sequence: KYC compliance, corridor discovery, and
-        cash-out matching — each paid in PYUSD on Kite Ozone. Final settlement is a gasless
-        EIP-3009 transfer. The right column shows the actual /discover, /compose and /settle
-        calls happening in real time.
+        We&rsquo;ll walk through <span className="font-medium text-ink">4 phases</span> —
+        discovery, agent shopping, authorization, settlement. Each phase reveals live in the
+        right column as it happens. Three autonomous agents (KYC compliance, corridor
+        discovery, cash-out matching) are paid in PYUSD on Kite Ozone via{" "}
+        <code className="text-[11px]">wasiai-a2a /compose</code>. Final settlement is a
+        gasless EIP-3009 transfer via the self-hosted facilitator, producing a real tx hash
+        on KiteScan.
       </p>
 
       <div className="mb-10 flex items-center gap-4">
@@ -184,7 +221,11 @@ export default function DemoPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <TraceConsole traces={traces} />
+          <TraceConsole
+            traces={traces}
+            activeSections={activeSections}
+            inFlightSections={inFlightSections}
+          />
         </div>
       </div>
     </main>
