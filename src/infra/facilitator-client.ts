@@ -1,6 +1,13 @@
 import { pyusdToOnchainAmount } from "@/core/settlement";
 import type { CashOutMatch, Corridor, SettlementReceipt } from "@/types/remittance";
-import { FACILITATOR_URL, KITE_CHAIN_ID, PYUSD_ADDRESS, RECEIVER_ADDRESS, SENDER_ADDRESS } from "./env";
+import {
+  FACILITATOR_URL,
+  KITE_CHAIN_ID,
+  ONCHAIN_AMOUNT_CAP_PYUSD,
+  PYUSD_ADDRESS,
+  RECEIVER_ADDRESS,
+  SENDER_ADDRESS,
+} from "./env";
 import { signTransferAuthorization } from "./eip3009-signer";
 
 const FACILITATOR_TIMEOUT_MS = 10_000;
@@ -72,7 +79,12 @@ export async function settleOnFacilitatorReal(args: {
   corridor: Corridor;
   match: CashOutMatch;
 }): Promise<SettlementReceipt> {
-  const valueOnchain = pyusdToOnchainAmount(args.amountPYUSD);
+  // Apply testnet demo cap: facilitator enforces a 100 PYUSD per-settle cap,
+  // and OPERATOR wallet only has ~8 PYUSD on Kite Ozone testnet. The UI shows
+  // the full conceptual amount ($200 / 3,784 MXN); onchain we settle the cap.
+  // Production would skip this cap entirely.
+  const onchainAmountPYUSD = Math.min(args.amountPYUSD, ONCHAIN_AMOUNT_CAP_PYUSD);
+  const valueOnchain = pyusdToOnchainAmount(onchainAmountPYUSD);
   const signed = await signTransferAuthorization({
     to: RECEIVER_ADDRESS,
     valueOnchain,
@@ -114,7 +126,7 @@ export async function settleOnFacilitatorReal(args: {
     blockNumber: result.blockNumber ?? 0,
     fromWallet: SENDER_ADDRESS,
     toWallet: RECEIVER_ADDRESS,
-    amountPYUSD: args.amountPYUSD,
+    amountPYUSD: onchainAmountPYUSD,
     corridor: args.corridor.id,
     partner: args.match.partnerName,
     network: `eip155:${KITE_CHAIN_ID}`,

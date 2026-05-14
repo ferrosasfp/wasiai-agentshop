@@ -19,6 +19,16 @@ export const RECEIVER_ADDRESS = (process.env.NEXT_PUBLIC_RECEIVER_ADDRESS ??
 
 export const SENDER_PRIVATE_KEY = process.env.SENDER_PRIVATE_KEY ?? "";
 
+/**
+ * Onchain transfer cap (in PYUSD) for the testnet demo. The facilitator
+ * enforces a 100 PYUSD per-settle cap; we keep ours well under that to
+ * preserve OPERATOR wallet balance across multiple demo runs.
+ * Real production has no cap — this is a testnet demo guardrail.
+ */
+export const ONCHAIN_AMOUNT_CAP_PYUSD = Number(
+  process.env.ONCHAIN_AMOUNT_CAP_PYUSD ?? "0.5",
+);
+
 export function isDemoMode(): boolean {
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 }
