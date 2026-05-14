@@ -26,6 +26,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <StepCard
           label="agentshop-kyc-validator"
           tag="$0.001 PYUSD · Kite"
+          route="wasiai-a2a /compose · billed via A2A_KEY"
           state={
             kyc
               ? kyc.isCompliant
@@ -53,6 +54,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <StepCard
           label="agentshop-corridor-discoverer"
           tag="$0.05 PYUSD · Kite"
+          route="wasiai-a2a /compose · billed via A2A_KEY"
           state={corridor ? "DONE" : kyc?.isCompliant ? (isRunning ? "RUNNING" : "WAITING") : "WAITING"}
         >
           {corridor ? (
@@ -81,6 +83,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <StepCard
           label="agentshop-cashout-matcher"
           tag="$0.01 PYUSD · Kite"
+          route="wasiai-a2a /compose · billed via A2A_KEY"
           state={match ? "DONE" : corridor ? (isRunning ? "RUNNING" : "WAITING") : "WAITING"}
         >
           {match ? (
@@ -110,11 +113,13 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
 function StepCard({
   label,
   tag,
+  route,
   state,
   children,
 }: {
   label: string;
   tag: string;
+  route?: string;
   state: "WAITING" | "RUNNING" | "DONE" | "REJECTED";
   children?: React.ReactNode;
 }) {
@@ -129,7 +134,7 @@ function StepCard({
 
   return (
     <div className="border border-line p-5">
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-2">
         <span className={`w-3 h-3 rounded-full ${stateColor}`}></span>
         <span className="mono text-xs uppercase tracking-widest font-medium">
           {label}
@@ -137,6 +142,9 @@ function StepCard({
         <span className="ml-auto mono text-xs text-muted">{tag}</span>
         <span className="mono text-xs text-muted">{state}</span>
       </div>
+      {route && (
+        <div className="mono text-[10px] text-muted ml-6 mb-2">↳ {route}</div>
+      )}
       {children && <div className="mt-2">{children}</div>}
     </div>
   );

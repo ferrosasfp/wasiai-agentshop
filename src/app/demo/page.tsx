@@ -5,6 +5,7 @@ import Link from "next/link";
 import { RemittancePicker } from "@/components/RemittancePicker";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { Settlement } from "@/components/Settlement";
+import { MarketplacePanel } from "@/components/MarketplacePanel";
 import type {
   CashOutMatch,
   CorridorDiscoveryResult,
@@ -106,6 +107,8 @@ export default function DemoPage() {
       </p>
 
       <div className="space-y-12">
+        <MarketplacePanel />
+
         <RemittancePicker onSelect={runPipeline} disabled={isRunning || isSettling} />
 
         {remittance && (
