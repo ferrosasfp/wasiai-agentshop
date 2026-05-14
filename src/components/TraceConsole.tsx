@@ -2,6 +2,7 @@
 
 import type { TraceEvent, TraceSection } from "@/types/trace";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { CopyButton } from "@/components/CopyButton";
 
 interface Props {
   traces: TraceEvent[];
@@ -55,6 +56,15 @@ const SOURCE_COLOR: Record<string, string> = {
 
 function sourceClass(source?: string): string {
   return SOURCE_COLOR[source ?? ""] ?? "text-slate-300";
+}
+
+function extractUrl(endpoint: string): string {
+  // endpoint format examples:
+  //  "POST https://wasiai-a2a-production.up.railway.app/compose"
+  //  "GET https://wasiai-a2a-production.up.railway.app/discover?..."
+  //  "viem signTypedData() · local computation, no network"
+  const match = endpoint.match(/https?:\/\/\S+/);
+  return match ? match[0] : endpoint;
 }
 
 function prettyJSON(value: unknown): string {
@@ -181,13 +191,16 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
           {t.metadata?.source ?? "live"}
         </span>
       </div>
-      <div className="text-slate-500 mono text-[10px] mb-3 break-all">
-        {t.endpoint}
+      <div className="flex items-start gap-2 mb-3">
+        <span className="text-slate-500 mono text-[10px] break-all flex-1">
+          {t.endpoint}
+        </span>
+        <CopyButton dark text={extractUrl(t.endpoint)} label="Copy URL" />
       </div>
 
       {t.request?.body !== undefined && (
         <details className="mb-2" open={index === 0}>
-          <summary className="text-slate-400 mono text-[10px] cursor-pointer hover:text-slate-200">
+          <summary className="text-slate-400 mono text-[10px] cursor-pointer hover:text-slate-200 inline-flex items-center gap-1">
             → request
           </summary>
           {t.request.headers && (
@@ -197,9 +210,14 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
                 .join("\n")}
             </pre>
           )}
-          <pre className="bg-black/40 mt-1 p-2 text-[10px] text-slate-200 overflow-auto mono max-h-64">
-            {prettyJSON(t.request.body)}
-          </pre>
+          <div className="relative">
+            <pre className="bg-black/40 mt-1 p-2 pr-8 text-[10px] text-slate-200 overflow-auto mono max-h-64">
+              {prettyJSON(t.request.body)}
+            </pre>
+            <span className="absolute top-2 right-2">
+              <CopyButton dark text={prettyJSON(t.request.body)} label="Copy request JSON" />
+            </span>
+          </div>
         </details>
       )}
 
@@ -214,16 +232,21 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
             </div>
           )}
           {t.response.body !== undefined && (
-            <pre className="bg-black/40 mt-1 p-2 text-[10px] text-slate-200 overflow-auto mono max-h-80">
-              {prettyJSON(t.response.body)}
-            </pre>
+            <div className="relative">
+              <pre className="bg-black/40 mt-1 p-2 pr-8 text-[10px] text-slate-200 overflow-auto mono max-h-80">
+                {prettyJSON(t.response.body)}
+              </pre>
+              <span className="absolute top-2 right-2">
+                <CopyButton dark text={prettyJSON(t.response.body)} label="Copy response JSON" />
+              </span>
+            </div>
           )}
         </details>
       )}
 
       {t.metadata?.downstreamTxHash && (
-        <div className="mt-2 text-[10px] mono">
-          <span className="text-slate-500">
+        <div className="mt-2 text-[10px] mono flex items-start gap-2">
+          <span className="text-slate-500 flex-shrink-0">
             {t.metadata.source === "facilitator" ? "kite tx · " : "downstream tx · "}
           </span>
           <a
@@ -234,14 +257,14 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
             }
             target="_blank"
             rel="noopener noreferrer"
-            className="text-fuchsia-400 underline hover:text-fuchsia-300 break-all"
+            className="text-fuchsia-400 underline hover:text-fuchsia-300 break-all flex-1"
           >
             {t.metadata.downstreamTxHash.slice(0, 14)}...
             {t.metadata.downstreamTxHash.slice(-8)}
           </a>
+          <CopyButton dark text={t.metadata.downstreamTxHash} label="Copy tx hash" />
           {t.metadata.downstreamBlockNumber ? (
-            <span className="text-slate-500">
-              {" "}
+            <span className="text-slate-500 flex-shrink-0">
               block {t.metadata.downstreamBlockNumber.toLocaleString()}
             </span>
           ) : null}

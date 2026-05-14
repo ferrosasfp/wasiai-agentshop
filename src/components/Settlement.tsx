@@ -4,6 +4,7 @@ import { kitescanUrl, shortHash } from "@/core/settlement";
 import { formatLocalCurrency, formatAmountUSD } from "@/core/remittance";
 import type { CashOutMatch, SettlementReceipt } from "@/types/remittance";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { CopyButton } from "@/components/CopyButton";
 
 interface Props {
   receipt: SettlementReceipt | null;
@@ -115,7 +116,7 @@ export function Settlement({
                 </span>
               )}
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <span className="text-muted">tx · </span>
               <a
                 href={kitescanUrl(receipt.txHash, receipt.chainId)}
@@ -125,6 +126,7 @@ export function Settlement({
               >
                 {shortHash(receipt.txHash, 8)}
               </a>
+              <CopyButton text={receipt.txHash} label="Copy tx hash" />
             </div>
             <div>
               <span className="text-muted">network · </span>
@@ -136,13 +138,15 @@ export function Settlement({
               <span className="text-muted">block · </span>
               {receipt.blockNumber.toLocaleString()}
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <span className="text-muted">from · </span>
               {shortHash(receipt.fromWallet, 6)}
+              <CopyButton text={receipt.fromWallet} label="Copy address" />
             </div>
-            <div>
+            <div className="flex items-center gap-2">
               <span className="text-muted">to · </span>
               {shortHash(receipt.toWallet, 6)}
+              <CopyButton text={receipt.toWallet} label="Copy address" />
             </div>
             <div>
               <span className="text-muted">facilitator · </span>
