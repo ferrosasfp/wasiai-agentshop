@@ -151,7 +151,7 @@ export default function DemoPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-12 md:px-12 md:py-16 max-w-[1600px] mx-auto">
+    <main className="min-h-screen bg-paper text-ink px-6 py-12 md:px-12 md:py-16 max-w-[1600px] mx-auto">
       <Link href="/" className="text-xs mono uppercase tracking-widest text-muted hover:text-ink">
         ← WasiAgentShop
       </Link>

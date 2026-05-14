@@ -147,12 +147,21 @@ function StepCard({
 }) {
   const stateColor =
     state === "DONE"
-      ? "bg-accent"
+      ? "bg-emerald-500 ring-2 ring-emerald-500/25"
       : state === "RUNNING"
-        ? "bg-warm animate-pulse"
+        ? "bg-amber-500 ring-2 ring-amber-500/25 animate-pulse"
         : state === "REJECTED"
-          ? "bg-red-500"
+          ? "bg-red-500 ring-2 ring-red-500/25"
           : "bg-line";
+
+  const stateLabelColor =
+    state === "DONE"
+      ? "text-emerald-600 font-semibold"
+      : state === "RUNNING"
+        ? "text-amber-600 font-semibold animate-pulse"
+        : state === "REJECTED"
+          ? "text-red-600 font-semibold"
+          : "text-muted";
 
   return (
     <div className="border border-line p-5">
@@ -162,7 +171,7 @@ function StepCard({
           {label}
         </span>
         <span className="ml-auto mono text-xs text-muted">{tag}</span>
-        <span className="mono text-xs text-muted">{state}</span>
+        <span className={`mono text-xs ${stateLabelColor}`}>{state}</span>
       </div>
       {route && (
         <div className="mono text-[10px] text-muted ml-6 mb-2">↳ {route}</div>

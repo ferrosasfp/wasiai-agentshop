@@ -50,14 +50,21 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--fg);
 }
 body {
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01";
+  background: #fafaf7;
+  color: #0a0a0a;
+}
+/* Landing-only theming: dark by default, light when html.light is set.
+   Scoped so /demo (Tailwind-based) keeps its paper-on-ink colors. */
+.landing-root {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
 }
 a {
   color: inherit;

@@ -233,7 +233,7 @@ export default function HomePage() {
   useScrollReveal();
 
   return (
-    <>
+    <div className="landing-root">
       {/* NAV */}
       <header className="nav">
         <div className="wrap nav-row">
@@ -1005,6 +1005,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
