@@ -18,17 +18,10 @@ function sourceClass(source?: string): string {
   return SOURCE_COLOR[source ?? ""] ?? "text-slate-300";
 }
 
-function prettyJSON(value: unknown, max = 6): string {
+function prettyJSON(value: unknown): string {
   if (value === undefined || value === null) return "null";
   try {
-    const str = JSON.stringify(value, null, 2);
-    const lines = str.split("\n");
-    if (lines.length > max + 2) {
-      const head = lines.slice(0, Math.floor(max / 2)).join("\n");
-      const tail = lines.slice(-Math.ceil(max / 2)).join("\n");
-      return `${head}\n  …truncated…\n${tail}`;
-    }
-    return str;
+    return JSON.stringify(value, null, 2);
   } catch {
     return String(value);
   }
@@ -100,8 +93,8 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
                 .join("\n")}
             </pre>
           )}
-          <pre className="bg-black/40 mt-1 p-2 text-[10px] text-slate-200 overflow-x-auto mono">
-            {prettyJSON(t.request.body, 12)}
+          <pre className="bg-black/40 mt-1 p-2 text-[10px] text-slate-200 overflow-auto mono max-h-64">
+            {prettyJSON(t.request.body)}
           </pre>
         </details>
       )}
@@ -117,8 +110,8 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
             </div>
           )}
           {t.response.body !== undefined && (
-            <pre className="bg-black/40 mt-1 p-2 text-[10px] text-slate-200 overflow-x-auto mono">
-              {prettyJSON(t.response.body, 12)}
+            <pre className="bg-black/40 mt-1 p-2 text-[10px] text-slate-200 overflow-auto mono max-h-80">
+              {prettyJSON(t.response.body)}
             </pre>
           )}
         </details>
