@@ -7,10 +7,12 @@ import type {
   KycResult,
 } from "@/types/remittance";
 
+type RunMetadata = { source?: string; latencyMs?: number };
+
 interface Props {
-  kyc: KycResult | null;
-  corridor: CorridorDiscoveryResult | null;
-  match: CashOutMatch | null;
+  kyc: (KycResult & RunMetadata) | null;
+  corridor: (CorridorDiscoveryResult & RunMetadata) | null;
+  match: (CashOutMatch & RunMetadata) | null;
   isRunning: boolean;
   receiverCountry: string;
 }
@@ -26,7 +28,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <StepCard
           label="agentshop-kyc-validator"
           tag="$0.001 PYUSD · Kite"
-          route="wasiai-a2a /compose · billed via A2A_KEY"
+          route={routeLabel(kyc)}
           state={
             kyc
               ? kyc.isCompliant
@@ -54,7 +56,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <StepCard
           label="agentshop-corridor-discoverer"
           tag="$0.05 PYUSD · Kite"
-          route="wasiai-a2a /compose · billed via A2A_KEY"
+          route={routeLabel(corridor)}
           state={corridor ? "DONE" : kyc?.isCompliant ? (isRunning ? "RUNNING" : "WAITING") : "WAITING"}
         >
           {corridor ? (
@@ -83,7 +85,7 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
         <StepCard
           label="agentshop-cashout-matcher"
           tag="$0.01 PYUSD · Kite"
-          route="wasiai-a2a /compose · billed via A2A_KEY"
+          route={routeLabel(match)}
           state={match ? "DONE" : corridor ? (isRunning ? "RUNNING" : "WAITING") : "WAITING"}
         >
           {match ? (
@@ -108,6 +110,17 @@ export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCoun
       </div>
     </div>
   );
+}
+
+function routeLabel(step: RunMetadata | null): string {
+  if (!step?.source) return "wasiai-a2a /compose · billed via A2A_KEY";
+  if (step.source === "a2a-compose") {
+    return `wasiai-a2a /compose · LIVE · ${step.latencyMs ?? 0}ms · A2A_KEY debited on chain 2368`;
+  }
+  if (step.source === "mock-fallback") {
+    return `wasiai-a2a /compose · fallback to mock (a2a unreachable after ${step.latencyMs ?? 0}ms)`;
+  }
+  return "demo mode · deterministic mock (a2a /compose disabled by NEXT_PUBLIC_DEMO_MODE)";
 }
 
 function StepCard({

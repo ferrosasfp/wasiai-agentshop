@@ -14,11 +14,13 @@ import type {
   SettlementReceipt,
 } from "@/types/remittance";
 
+type RunMeta = { source?: string; latencyMs?: number };
+
 export default function DemoPage() {
   const [remittance, setRemittance] = useState<Remittance | null>(null);
-  const [kyc, setKyc] = useState<KycResult | null>(null);
-  const [corridor, setCorridor] = useState<CorridorDiscoveryResult | null>(null);
-  const [match, setMatch] = useState<CashOutMatch | null>(null);
+  const [kyc, setKyc] = useState<(KycResult & RunMeta) | null>(null);
+  const [corridor, setCorridor] = useState<(CorridorDiscoveryResult & RunMeta) | null>(null);
+  const [match, setMatch] = useState<(CashOutMatch & RunMeta) | null>(null);
   const [receipt, setReceipt] = useState<SettlementReceipt | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
