@@ -7,6 +7,7 @@ import { PipelineProgress } from "@/components/PipelineProgress";
 import { Settlement } from "@/components/Settlement";
 import { MarketplacePanel } from "@/components/MarketplacePanel";
 import { TraceConsole } from "@/components/TraceConsole";
+import { BrandIcon } from "@/components/BrandIcon";
 import type {
   CashOutMatch,
   CorridorDiscoveryResult,
@@ -153,8 +154,9 @@ export default function DemoPage() {
   return (
     <div className="landing-root">
     <main className="px-6 py-12 md:px-12 md:py-16 mx-auto max-w-[1600px]">
-      <Link href="/" className="text-xs mono uppercase tracking-widest text-muted hover:text-ink">
-        ← WasiAgentShop
+      <Link href="/" className="inline-flex items-center gap-2 text-xs mono uppercase tracking-widest text-muted hover:text-ink">
+        <span className="brand-mark"><BrandIcon /></span>
+        <span>← WasiAgentShop</span>
       </Link>
 
       <h1 className="serif text-4xl md:text-5xl mt-8 mb-4 leading-tight max-w-4xl">

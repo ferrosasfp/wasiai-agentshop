@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BrandIcon } from "@/components/BrandIcon";
 
 /* ───────────────────────── CountUp ───────────────────────── */
 function CountUp({
@@ -238,7 +239,7 @@ export default function HomePage() {
       <header className="nav">
         <div className="wrap nav-row">
           <a href="#" className="brand">
-            <span className="brand-mark">W</span>
+            <span className="brand-mark"><BrandIcon /></span>
             <span>WasiAgentShop</span>
             <span className="sep">·</span>
             <span className="sub">Kite Hackathon 2026</span>
@@ -884,7 +885,7 @@ export default function HomePage() {
           <div className="foot-grid">
             <div>
               <div className="brand" style={{ marginBottom: 14 }}>
-                <span className="brand-mark">W</span>
+                <span className="brand-mark"><BrandIcon /></span>
                 <span>WasiAgentShop</span>
               </div>
               <p>

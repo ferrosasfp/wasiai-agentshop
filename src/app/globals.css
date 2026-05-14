@@ -133,16 +133,18 @@ a {
   letter-spacing: -0.01em;
 }
 .brand-mark {
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, var(--red) 0%, #c73031 100%);
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(232, 65, 66, 0.35);
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 12px rgba(232, 65, 66, 0.35));
+}
+.brand-mark svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+  border-radius: 7px;
 }
 .brand .sep {
   color: var(--fg-3);
