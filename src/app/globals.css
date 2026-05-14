@@ -59,13 +59,35 @@ body {
   background: #fafaf7;
   color: #0a0a0a;
 }
-/* Landing-only theming: dark by default, light when html.light is set.
-   Scoped so /demo (Tailwind-based) keeps its paper-on-ink colors. */
+/* Landing + /demo theming: dark by default, light when html.light is set.
+   Scoped so the dark palette only applies inside the .landing-root wrapper. */
 .landing-root {
   min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
 }
+
+/* /demo uses Tailwind utility classes (bg-paper/text-ink/bg-ink/etc).
+   Remap them onto the Claude Design CSS vars inside .landing-root so the
+   demo inherits the dark aesthetic automatically. */
+.landing-root .bg-paper { background: var(--bg-2); }
+.landing-root .bg-white { background: var(--bg-2); }
+.landing-root .text-ink { color: var(--fg); }
+.landing-root .hover\:text-ink:hover { color: var(--fg); }
+.landing-root .text-muted { color: var(--fg-3); }
+.landing-root .border-line { border-color: var(--line); }
+.landing-root .border-accent { border-color: var(--green); }
+.landing-root .bg-accent { background: var(--green); color: var(--bg); }
+.landing-root .text-accent { color: var(--green-soft); }
+.landing-root .hover\:bg-accent:hover { background: var(--green); }
+.landing-root .hover\:text-accent:hover { color: var(--green-soft); }
+.landing-root .bg-ink { background: var(--fg); color: var(--bg); }
+.landing-root .hover\:bg-ink:hover { background: var(--fg); }
+.landing-root .text-paper { color: var(--bg); }
+.landing-root .bg-paper\/40 { background: rgba(0, 0, 0, 0.18); }
+.landing-root .bg-paper\/60 { background: rgba(0, 0, 0, 0.30); }
+.landing-root .border-red-500 { border-color: var(--red); }
+.landing-root .text-red-600 { color: var(--red-soft); }
 a {
   color: inherit;
   text-decoration: none;
