@@ -1,30 +1,68 @@
 "use client";
 
 import { kitescanUrl, shortHash } from "@/core/settlement";
-import type { SettlementReceipt } from "@/types/remittance";
+import { formatLocalCurrency, formatAmountUSD } from "@/core/remittance";
+import type { CashOutMatch, SettlementReceipt } from "@/types/remittance";
 
 interface Props {
   receipt: SettlementReceipt | null;
+  match: CashOutMatch | null;
+  receiverCountry: string;
   onSettle: () => void;
   canSettle: boolean;
   isSettling: boolean;
 }
 
-export function Settlement({ receipt, onSettle, canSettle, isSettling }: Props) {
+export function Settlement({
+  receipt,
+  match,
+  receiverCountry,
+  onSettle,
+  canSettle,
+  isSettling,
+}: Props) {
   if (receipt) {
+    const isTestnetCapped = match
+      ? receipt.amountPYUSD < match.netDeliveredUSD - 0.01
+      : false;
     return (
       <div>
         <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
           04 · Settled onchain
         </div>
         <div className="border border-accent p-6 bg-white">
-          <div className="serif text-3xl mb-1">
-            {receipt.amountPYUSD.toFixed(4)} PYUSD sent
-          </div>
-          <div className="text-xs mono text-muted mb-6">
-            via {receipt.corridor} · last-mile {receipt.partner}
-          </div>
+          {match ? (
+            <>
+              <div className="serif text-3xl mb-1">
+                {formatLocalCurrency(match.netDeliveredMXN, receiverCountry)} delivered
+              </div>
+              <div className="text-xs mono text-muted mb-6">
+                via {receipt.corridor} → {match.partnerName} · payout in{" "}
+                {match.estimatedPayoutMinutes}min
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="serif text-3xl mb-1">
+                {receipt.amountPYUSD.toFixed(4)} PYUSD sent
+              </div>
+              <div className="text-xs mono text-muted mb-6">
+                via {receipt.corridor} → {receipt.partner}
+              </div>
+            </>
+          )}
+
           <div className="space-y-2 text-xs mono">
+            <div>
+              <span className="text-muted">onchain proof · </span>
+              {receipt.amountPYUSD.toFixed(4)} PYUSD
+              {isTestnetCapped && (
+                <span className="text-muted">
+                  {" "}
+                  · testnet cap (mainnet settles full {formatAmountUSD(match?.netDeliveredUSD ?? 0)})
+                </span>
+              )}
+            </div>
             <div>
               <span className="text-muted">tx · </span>
               <a

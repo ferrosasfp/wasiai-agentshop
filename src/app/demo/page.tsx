@@ -118,9 +118,11 @@ export default function DemoPage() {
           />
         )}
 
-        {match && (
+        {match && remittance && (
           <Settlement
             receipt={receipt}
+            match={match}
+            receiverCountry={remittance.receiver.country}
             onSettle={handleSettle}
             canSettle={!!match}
             isSettling={isSettling}
