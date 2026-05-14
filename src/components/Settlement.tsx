@@ -3,6 +3,7 @@
 import { kitescanUrl, shortHash } from "@/core/settlement";
 import { formatLocalCurrency, formatAmountUSD } from "@/core/remittance";
 import type { CashOutMatch, SettlementReceipt } from "@/types/remittance";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface Props {
   receipt: SettlementReceipt | null;
@@ -34,8 +35,16 @@ export function Settlement({
       : false;
     return (
       <div>
-        <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
-          04 · Settled onchain
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs mono uppercase tracking-widest text-muted">
+            04 · Settled onchain
+          </span>
+          <InfoTooltip>
+            The wasiai-facilitator receives the signed authorization from sección 03,
+            pays the gas in KITE (gasless for the sender), and submits
+            transferWithAuthorization to the PYUSD token contract. PYUSD moves onchain
+            from sender to receiver. Result: a real tx hash verifiable on KiteScan.
+          </InfoTooltip>
         </div>
         <div className="border border-accent p-6 bg-white">
           {match ? (
@@ -147,8 +156,17 @@ export function Settlement({
 
   return (
     <div>
-      <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
-        03 · Authorize the payout
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xs mono uppercase tracking-widest text-muted">
+          03 · Authorize the payout
+        </span>
+        <InfoTooltip>
+          The server generates an EIP-3009 TransferWithAuthorization typed-data and signs
+          it locally with SENDER_PRIVATE_KEY (operator wallet). No network call, no money
+          moves — just a cryptographic signature (65 bytes) that authorizes the facilitator
+          to execute the transfer in sección 04. The split sign/settle is what enables
+          gasless UX on x402.
+        </InfoTooltip>
       </div>
       <div className="border border-line p-6">
         <p className="text-sm leading-relaxed mb-6 text-muted">

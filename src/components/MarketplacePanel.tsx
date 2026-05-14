@@ -20,6 +20,7 @@ interface DiscoveryResponse {
 }
 
 import type { TraceEvent } from "@/types/trace";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface MarketplacePanelProps {
   onTrace?: (trace: TraceEvent) => void;
@@ -44,8 +45,15 @@ export function MarketplacePanel({ onTrace }: MarketplacePanelProps = {}) {
 
   return (
     <div>
-      <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
-        00 · Marketplace · WasiAI A2A
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xs mono uppercase tracking-widest text-muted">
+          00 · Marketplace · WasiAI A2A
+        </span>
+        <InfoTooltip>
+          Discovery-only: the chatbot calls wasiai-a2a /discover to list agents available
+          on the marketplace. No payment, no compose, no transaction yet — just a lookup.
+          Returns slug + price + chain + asset per agent so the chatbot can build a pipeline.
+        </InfoTooltip>
       </div>
 
       <div className="border border-line p-6 bg-white">

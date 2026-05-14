@@ -3,6 +3,7 @@
 import { MOCK_REMITTANCES } from "@/lib/mock-data";
 import { formatAmountUSD } from "@/core/remittance";
 import type { Remittance } from "@/types/remittance";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface Props {
   onSelect: (remittance: Remittance) => void;
@@ -22,8 +23,15 @@ const FLAG: Record<string, string> = {
 export function RemittancePicker({ onSelect, disabled }: Props) {
   return (
     <div>
-      <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
-        01 · Pick a remittance request
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xs mono uppercase tracking-widest text-muted">
+          01 · Pick a remittance request
+        </span>
+        <InfoTooltip>
+          Pure user action — no API call. Clicking a card kicks off the agent pipeline
+          (sección 02). Each card represents a realistic remittance scenario (US/ES sender
+          to MX/CO/PE receiver) with different cash-out preferences and amounts.
+        </InfoTooltip>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {MOCK_REMITTANCES.map((rem) => (

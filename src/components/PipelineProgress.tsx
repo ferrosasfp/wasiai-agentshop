@@ -6,6 +6,7 @@ import type {
   CorridorDiscoveryResult,
   KycResult,
 } from "@/types/remittance";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 type RunMetadata = { source?: string; latencyMs?: number };
 
@@ -20,8 +21,16 @@ interface Props {
 export function PipelineProgress({ kyc, corridor, match, isRunning, receiverCountry }: Props) {
   return (
     <div>
-      <div className="text-xs mono uppercase tracking-widest text-muted mb-4">
-        02 · Agents shopping the marketplace
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xs mono uppercase tracking-widest text-muted">
+          02 · Agents shopping the marketplace
+        </span>
+        <InfoTooltip>
+          Three autonomous agents run via wasiai-a2a /compose. Each one (KYC compliance,
+          corridor discovery, cash-out matching) is paid in PYUSD from the chatbot&apos;s
+          A2A_KEY budget. They return a PLAN — partner, fees, amount delivered — but no
+          money moves yet. Money moves in sección 04.
+        </InfoTooltip>
       </div>
 
       <div className="space-y-4">

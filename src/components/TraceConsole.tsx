@@ -1,6 +1,7 @@
 "use client";
 
 import type { TraceEvent, TraceSection } from "@/types/trace";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface Props {
   traces: TraceEvent[];
@@ -10,26 +11,35 @@ const SECTIONS: Array<{
   id: TraceSection;
   title: string;
   subtitle: string;
+  tooltip: string;
 }> = [
   {
     id: "00",
     title: "Marketplace · WasiAI A2A",
     subtitle: "GET /discover · agent lookup",
+    tooltip:
+      "Lookup-only. Returns the 3 agents registered in the WasiAI marketplace with their slug + price + chain + asset. Real HTTP GET (you see the latency). No payment, no compose, no transaction.",
   },
   {
     id: "02",
     title: "Agents shopping the marketplace",
     subtitle: "POST /compose × 3 · debits A2A_KEY budget",
+    tooltip:
+      "Three /compose calls to wasiai-a2a. The gateway routes each to the agent's endpoint and debits the A2A_KEY budget. Each agent returns a PLAN (KYC outcome, ranked corridors, picked partner). No money to receiver moves yet — that's sección 04.",
   },
   {
     id: "03",
     title: "Authorize the payout",
     subtitle: "EIP-3009 signature built server-side",
+    tooltip:
+      "Local cryptographic operation. The server constructs the EIP-712 TransferWithAuthorization typed data (domain: PYUSD on Kite Ozone, message: from/to/value/nonce) and signs it with SENDER_PRIVATE_KEY. Zero network. ~8ms. The 65-byte signature is the input for sección 04.",
   },
   {
     id: "04",
     title: "Settled onchain",
     subtitle: "POST facilitator/settle · KiteScan tx",
+    tooltip:
+      "The facilitator receives the signed authorization, pays the gas (gasless UX for the sender), and submits transferWithAuthorization to the PYUSD token contract on Kite Ozone. PYUSD tokens move onchain from sender to receiver. Returns the tx hash you can inspect on KiteScan.",
   },
 ];
 
@@ -78,21 +88,26 @@ function SectionBlock({
   id,
   title,
   subtitle,
+  tooltip,
   events,
 }: {
   id: TraceSection;
   title: string;
   subtitle: string;
+  tooltip: string;
   events: TraceEvent[];
 }) {
   return (
-    <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/50">
-        <div className="flex items-baseline gap-3">
+    <div className="bg-slate-950 text-slate-100 rounded-sm border border-slate-800 overflow-visible">
+      <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/50 overflow-visible">
+        <div className="flex items-baseline gap-2">
           <span className="mono text-[10px] uppercase tracking-widest text-slate-400">
             {id}
           </span>
           <span className="font-medium text-sm text-slate-100">{title}</span>
+          <span className="ml-1">
+            <InfoTooltip dark>{tooltip}</InfoTooltip>
+          </span>
         </div>
         <div className="mono text-[10px] text-slate-500 mt-1">{subtitle}</div>
       </div>
