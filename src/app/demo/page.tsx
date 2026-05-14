@@ -92,7 +92,11 @@ export default function DemoPage() {
         body: JSON.stringify({ remittance, corridor, match }),
       }).then((r) => r.json());
       setReceipt(res.receipt);
-      addTrace(res.trace);
+      if (Array.isArray(res.traces)) {
+        res.traces.forEach((t: TraceEvent) => addTrace(t));
+      } else if (res.trace) {
+        addTrace(res.trace);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Settle failed");
     } finally {
