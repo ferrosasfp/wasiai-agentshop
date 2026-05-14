@@ -13,6 +13,13 @@ interface Props {
   isSettling: boolean;
 }
 
+const AGENT_FEES = {
+  kyc: 0.001,
+  corridor: 0.05,
+  cashout: 0.01,
+};
+const AGENT_FEE_TOTAL = AGENT_FEES.kyc + AGENT_FEES.corridor + AGENT_FEES.cashout;
+
 export function Settlement({
   receipt,
   match,
@@ -51,6 +58,42 @@ export function Settlement({
               </div>
             </>
           )}
+
+          <div className="border border-line p-4 mb-4 bg-paper/40">
+            <div className="text-[10px] mono uppercase tracking-widest text-muted mb-3">
+              total cost breakdown
+            </div>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between mono">
+                <span className="text-muted">
+                  agent fees · 3 × /compose (sección 02)
+                </span>
+                <span>{AGENT_FEE_TOTAL.toFixed(3)} PYUSD</span>
+              </div>
+              <div className="text-[10px] mono text-muted pl-4">
+                kyc-validator $0.001 + corridor-discoverer $0.05 + cashout-matcher $0.01
+              </div>
+              <div className="flex justify-between mono pt-1.5">
+                <span className="text-muted">
+                  remittance principal · facilitator (sección 04)
+                </span>
+                <span>{receipt.amountPYUSD.toFixed(3)} PYUSD</span>
+              </div>
+              <div className="text-[10px] mono text-muted pl-4">
+                {isTestnetCapped
+                  ? `testnet cap — mainnet would settle full ${formatAmountUSD(match?.netDeliveredUSD ?? 0)}`
+                  : "onchain transfer"}
+              </div>
+              <div className="flex justify-between mono pt-1.5">
+                <span className="text-muted">operator gas (Kite)</span>
+                <span className="text-accent">0 KITE · gasless via facilitator</span>
+              </div>
+              <div className="flex justify-between mono pt-2 border-t border-line text-sm font-medium">
+                <span>total PYUSD-equivalent outlay</span>
+                <span>{(AGENT_FEE_TOTAL + receipt.amountPYUSD).toFixed(3)} PYUSD</span>
+              </div>
+            </div>
+          </div>
 
           <div className="space-y-2 text-xs mono">
             <div>
