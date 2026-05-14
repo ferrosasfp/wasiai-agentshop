@@ -1,11 +1,40 @@
 import { NextResponse } from "next/server";
 import { A2A_URL } from "@/infra/env";
 
+interface RawDiscoveredAgent {
+  slug: string;
+  name: string;
+  priceUsdc: number;
+  payment?: {
+    chain?: string;
+    asset?: string;
+    method?: string;
+    contract?: string;
+  };
+}
+
 interface DiscoveredAgent {
   slug: string;
   name: string;
   priceUsdc: number;
-  payment?: { chain?: string; asset?: string; method?: string };
+  payment?: {
+    chain?: string;
+    asset?: string;
+    method?: string;
+    identityContract?: string;
+  };
+}
+
+function renameContract(a: RawDiscoveredAgent): DiscoveredAgent {
+  if (!a.payment) return a as DiscoveredAgent;
+  const { contract, ...rest } = a.payment;
+  return {
+    ...a,
+    payment: {
+      ...rest,
+      identityContract: contract,
+    },
+  };
 }
 
 interface DiscoveryResponse {
@@ -29,19 +58,34 @@ const STATIC_FALLBACK: DiscoveredAgent[] = [
     slug: "agentshop-kyc-validator",
     name: "AgentShop KYC Validator",
     priceUsdc: 0.001,
-    payment: { chain: "kite-ozone-testnet", asset: "PYUSD", method: "x402" },
+    payment: {
+      chain: "kite-ozone-testnet",
+      asset: "PYUSD",
+      method: "x402",
+      identityContract: "0x9316E902760f2c37CDA57C8Be01358D890a26276",
+    },
   },
   {
     slug: "agentshop-corridor-discoverer",
     name: "AgentShop Corridor Discoverer",
     priceUsdc: 0.05,
-    payment: { chain: "kite-ozone-testnet", asset: "PYUSD", method: "x402" },
+    payment: {
+      chain: "kite-ozone-testnet",
+      asset: "PYUSD",
+      method: "x402",
+      identityContract: "0x9316E902760f2c37CDA57C8Be01358D890a26276",
+    },
   },
   {
     slug: "agentshop-cashout-matcher",
     name: "AgentShop Cash-Out Matcher",
     priceUsdc: 0.01,
-    payment: { chain: "kite-ozone-testnet", asset: "PYUSD", method: "x402" },
+    payment: {
+      chain: "kite-ozone-testnet",
+      asset: "PYUSD",
+      method: "x402",
+      identityContract: "0x9316E902760f2c37CDA57C8Be01358D890a26276",
+    },
   },
 ];
 
@@ -56,10 +100,12 @@ export async function GET() {
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) throw new Error(`a2a /discover HTTP ${res.status}`);
-    const data = (await res.json()) as { agents: DiscoveredAgent[] };
-    const live = (data.agents ?? []).filter((a) =>
-      AGENTSHOP_SLUGS.includes(a.slug as (typeof AGENTSHOP_SLUGS)[number]),
-    );
+    const data = (await res.json()) as { agents: RawDiscoveredAgent[] };
+    const live = (data.agents ?? [])
+      .filter((a) =>
+        AGENTSHOP_SLUGS.includes(a.slug as (typeof AGENTSHOP_SLUGS)[number]),
+      )
+      .map(renameContract);
     agents = live.length === 3 ? live : STATIC_FALLBACK;
     if (live.length !== 3) registry = "WasiAI · static fallback";
   } catch {
@@ -68,7 +114,9 @@ export async function GET() {
   }
 
   const ordered = AGENTSHOP_SLUGS.map(
-    (slug) => agents.find((a) => a.slug === slug) ?? STATIC_FALLBACK.find((a) => a.slug === slug)!,
+    (slug) =>
+      agents.find((a) => a.slug === slug) ??
+      STATIC_FALLBACK.find((a) => a.slug === slug)!,
   );
 
   const latencyMs = Date.now() - started;
