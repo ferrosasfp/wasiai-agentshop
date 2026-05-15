@@ -79,7 +79,7 @@ User ──▶ WasiAgentShop UI
 
 | Path | What's there |
 |---|---|
-| [`src/app/page.tsx`](src/app/page.tsx) | Landing (Claude Design dark theme, animated story stage) |
+| [`src/app/page.tsx`](src/app/page.tsx) | Landing (dark theme, animated story stage) |
 | [`src/app/demo/page.tsx`](src/app/demo/page.tsx) | 4-phase demo with progressive trace reveal |
 | [`src/app/api/marketplace/route.ts`](src/app/api/marketplace/route.ts) | `GET /discover` — section 00 |
 | [`src/app/api/kyc/route.ts`](src/app/api/kyc/route.ts) | Real `/compose` call — section 02 step 1 |

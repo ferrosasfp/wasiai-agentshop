@@ -22,12 +22,12 @@ LATAM remittances are a ~$63B/year market dominated by intermediaries that charg
 and take hours-to-days to settle. The sender has no visibility into the best corridor
 (rate, speed, cash-out partner) and no guarantee until the money "appears" on the other side.
 
-WasiAgentShop is an agentic layer on top of Kite Ozone. When Maria wants to send
-$400 to her mom in Oaxaca, her chatbot **autonomously**:
+WasiAgentShop is an agentic layer on top of Kite Ozone. When Luis Quispe wants to send
+$400 to his mom Rosa in Peru, his chatbot **autonomously**:
 
 1. Pays **agent kyc-validator** ($0.001 PYUSD) to confirm the operation is AML-compliant
 2. Pays **agent corridor-discoverer** ($0.05 PYUSD) to evaluate 4+ rails with live FX and pick the best
-3. Pays **agent cashout-matcher** ($0.01 PYUSD) to reserve the last mile (OXXO / bank / wallet)
+3. Pays **agent cashout-matcher** ($0.01 PYUSD) to reserve the last mile (Yape / BCP / Interbank)
 4. Signs an EIP-3009 gasless authorization — `wasiai-facilitator` settles PYUSD on Kite Ozone
 
 End-to-end: under 30 seconds. Total agent fees: $0.061. **The Kite thesis made real** — agents
@@ -74,9 +74,9 @@ transacting with agents autonomously, on-chain, on verifiable infrastructure.
                   └─────────────────────────┘
 ```
 
-The same WasiAI stack (chain-agnostic from day one) runs another vertical in production —
-**Lendable** (LATAM SMB invoice factoring on Avalanche Fuji) — proving the architecture is
-not a one-off demo but a reusable agent-payments rail.
+The same WasiAI A2A gateway also powers **Lendable** — a separate vertical for LATAM SMB
+invoice factoring on Avalanche Fuji. Same code, different chain, different problem domain.
+That is the value of a chain-agnostic agent commerce layer.
 
 ## Stack
 
@@ -124,7 +124,7 @@ See `.env.example`. Highlights:
 ```
 src/
 ├── app/
-│   ├── page.tsx               # Landing (Claude Design handoff: dark theme, story stage)
+│   ├── page.tsx               # Landing (dark theme, animated story stage)
 │   ├── demo/page.tsx          # Interactive 4-phase walkthrough
 │   └── api/
 │       ├── kyc/route.ts             # Calls wasiai-a2a /compose for kyc-validator
