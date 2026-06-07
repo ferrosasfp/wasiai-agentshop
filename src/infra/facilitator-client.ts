@@ -1,6 +1,7 @@
 import { pyusdToOnchainAmount } from "@/core/settlement";
 import type { CashOutMatch, Corridor, SettlementReceipt } from "@/types/remittance";
 import {
+  FACILITATOR_API_KEY,
   FACILITATOR_URL,
   KITE_CHAIN_ID,
   ONCHAIN_AMOUNT_CAP_PYUSD,
@@ -103,9 +104,22 @@ export async function settleOnFacilitatorReal(args: {
     signature: signed.signature,
   });
 
+  // POST-SUBMISSION CHANGE (Kite hackathon, finalists — pitch 2026-06-16).
+  // The submitted demo called the facilitator /settle WITHOUT auth. Since then
+  // we improved our own stack: the self-hosted wasiai-facilitator was hardened
+  // (WFAC-AUDIT) and now enforces caller auth on /verify and /settle. Without
+  // `Authorization: Bearer <FACILITATOR_API_KEY>` it replies 401 UNAUTHORIZED,
+  // which surfaced here as a 500 from /api/settle. We attach the bearer so the
+  // real PYUSD settle on Kite Ozone keeps working against the upgraded
+  // facilitator. Auth contract: wasiai-facilitator/src/middleware/auth.ts.
   const res = await fetch(`${FACILITATOR_URL}/settle`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(FACILITATOR_API_KEY
+        ? { Authorization: `Bearer ${FACILITATOR_API_KEY}` }
+        : {}),
+    },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(FACILITATOR_TIMEOUT_MS),
   });

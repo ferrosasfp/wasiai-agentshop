@@ -5,6 +5,20 @@ export const A2A_KEY = process.env.A2A_KEY ?? "";
 export const FACILITATOR_URL =
   process.env.WASIAI_FACILITATOR_URL ?? "https://wasiai-facilitator-production.up.railway.app";
 
+/**
+ * Bearer credential for the self-hosted wasiai-facilitator.
+ *
+ * POST-SUBMISSION CHANGE (Kite hackathon, finalists — pitch 2026-06-16).
+ * This var was NOT part of the originally submitted demo. Since submission we
+ * advanced our own infrastructure: the self-hosted `wasiai-facilitator` was
+ * hardened (WFAC-AUDIT) and now requires caller auth — every /verify and
+ * /settle call must carry `Authorization: Bearer <FACILITATOR_API_KEY>` or it
+ * returns 401 UNAUTHORIZED. agentshop must send this bearer for the real Kite
+ * settle to work. Set it in Vercel to the SAME value configured in the
+ * facilitator's Railway env. See wasiai-facilitator/src/middleware/auth.ts.
+ */
+export const FACILITATOR_API_KEY = process.env.FACILITATOR_API_KEY ?? "";
+
 export const KITE_CHAIN_ID = Number(process.env.KITE_CHAIN_ID ?? 2368);
 export const KITE_RPC_URL =
   process.env.KITE_RPC_URL ?? "https://rpc-testnet.gokite.ai/";
