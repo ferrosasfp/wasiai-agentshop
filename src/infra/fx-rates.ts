@@ -37,7 +37,7 @@ async function fetchLiveRates(): Promise<CachedRates> {
   try {
     const res = await fetch("https://open.er-api.com/v6/latest/USD", {
       next: { revalidate: 300 },
-      signal: AbortSignal.timeout(3500),
+      signal: AbortSignal.timeout(1500),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as {
