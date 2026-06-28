@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { A2A_URL } from "@/infra/env";
+import { A2A_URL, FACILITATOR_URL } from "@/infra/env";
 
 interface RawDiscoveredAgent {
   slug: string;
@@ -125,7 +125,7 @@ export async function GET() {
     totalEstimatedFee: ordered.reduce((sum, a) => sum + (a.priceUsdc ?? 0), 0),
     discoveryEndpoint: `${A2A_URL}/discover`,
     composeEndpoint: `${A2A_URL}/compose`,
-    facilitatorEndpoint: "https://wasiai-facilitator-production.up.railway.app",
+    facilitatorEndpoint: FACILITATOR_URL,
     latencyMs,
     registry,
   };
