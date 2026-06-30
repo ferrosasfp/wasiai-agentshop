@@ -130,9 +130,7 @@ export function Settlement({
             </div>
             <div>
               <span className="text-muted">network · </span>
-              {receipt.chainId === 2366
-                ? "Kite Ozone mainnet"
-                : "Kite Ozone testnet"}
+              {receipt.network}
             </div>
             <div>
               <span className="text-muted">block · </span>

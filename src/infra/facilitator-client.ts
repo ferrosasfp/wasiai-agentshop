@@ -1,13 +1,14 @@
-import { pyusdToOnchainAmount } from "@/core/settlement";
+import { toOnchainAmount } from "@/core/settlement";
 import type { CashOutMatch, Corridor, SettlementReceipt } from "@/types/remittance";
 import {
   FACILITATOR_API_KEY,
   FACILITATOR_URL,
-  KITE_CHAIN_ID,
   ONCHAIN_AMOUNT_CAP_PYUSD,
-  PYUSD_ADDRESS,
   RECEIVER_ADDRESS,
   SENDER_ADDRESS,
+  SETTLE_ASSET_ADDRESS,
+  SETTLE_CHAIN_ID,
+  SETTLE_NETWORK,
 } from "./env";
 import { signTransferAuthorization } from "./eip3009-signer";
 
@@ -61,9 +62,9 @@ function buildCanonicalBody(args: {
     resource: { url: "https://wasiai-agentshop.vercel.app/remit" },
     accepted: {
       scheme: "exact",
-      network: `eip155:${KITE_CHAIN_ID}`,
+      network: SETTLE_NETWORK,
       amount: args.authorization.value,
-      asset: PYUSD_ADDRESS,
+      asset: SETTLE_ASSET_ADDRESS,
       payTo: args.authorization.to,
       maxTimeoutSeconds: 300,
       extra: { assetTransferMethod: "eip3009" },
@@ -76,16 +77,16 @@ function buildCanonicalBody(args: {
 }
 
 export async function settleOnFacilitatorReal(args: {
-  amountPYUSD: number;
+  amount: number;
   corridor: Corridor;
   match: CashOutMatch;
 }): Promise<SettlementReceipt> {
-  // Apply testnet demo cap: facilitator enforces a 100 PYUSD per-settle cap,
-  // and OPERATOR wallet only has ~8 PYUSD on Kite Ozone testnet. The UI shows
-  // the full conceptual amount ($200 / 3,784 MXN); onchain we settle the cap.
+  // Apply testnet demo cap: the OPERATOR wallet holds a small balance on the
+  // settlement testnet (default Avalanche Fuji USDC). The UI shows the full
+  // conceptual amount ($200 / 3,784 MXN); onchain we settle the cap.
   // Production would skip this cap entirely.
-  const onchainAmountPYUSD = Math.min(args.amountPYUSD, ONCHAIN_AMOUNT_CAP_PYUSD);
-  const valueOnchain = pyusdToOnchainAmount(onchainAmountPYUSD);
+  const onchainAmount = Math.min(args.amount, ONCHAIN_AMOUNT_CAP_PYUSD);
+  const valueOnchain = toOnchainAmount(onchainAmount);
   const signed = await signTransferAuthorization({
     to: RECEIVER_ADDRESS,
     valueOnchain,
@@ -136,14 +137,14 @@ export async function settleOnFacilitatorReal(args: {
 
   return {
     txHash: result.transactionHash,
-    chainId: KITE_CHAIN_ID,
+    chainId: SETTLE_CHAIN_ID,
     blockNumber: result.blockNumber ?? 0,
     fromWallet: SENDER_ADDRESS,
     toWallet: RECEIVER_ADDRESS,
-    amountPYUSD: onchainAmountPYUSD,
+    amountPYUSD: onchainAmount,
     corridor: args.corridor.id,
     partner: args.match.partnerName,
-    network: `eip155:${KITE_CHAIN_ID}`,
+    network: SETTLE_NETWORK,
     facilitator: "wasiai-facilitator",
   };
 }

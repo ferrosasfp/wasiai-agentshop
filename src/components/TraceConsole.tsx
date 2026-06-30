@@ -2,6 +2,12 @@
 
 import type { TraceEvent, TraceSection } from "@/types/trace";
 import { InfoTooltip } from "@/components/InfoTooltip";
+
+// Client-side settle-chain explorer template (`{tx}` placeholder). Inlined at
+// build via NEXT_PUBLIC_*. Default points at Avalanche Fuji Snowtrace.
+const SETTLE_EXPLORER_TX_URL_PUBLIC =
+  process.env.NEXT_PUBLIC_SETTLE_EXPLORER_TX_URL ??
+  "https://testnet.snowtrace.io/tx/{tx}";
 import { CopyButton } from "@/components/CopyButton";
 
 interface Props {
@@ -247,12 +253,15 @@ function TraceItem({ t, index }: { t: TraceEvent; index: number }) {
       {t.metadata?.downstreamTxHash && (
         <div className="mt-2 text-[10px] mono flex items-start gap-2">
           <span className="text-slate-500 flex-shrink-0">
-            {t.metadata.source === "facilitator" ? "kite tx · " : "downstream tx · "}
+            {t.metadata.source === "facilitator" ? "settle tx · " : "downstream tx · "}
           </span>
           <a
             href={
               t.metadata.source === "facilitator"
-                ? `https://testnet.kitescan.ai/tx/${t.metadata.downstreamTxHash}`
+                ? SETTLE_EXPLORER_TX_URL_PUBLIC.replace(
+                    "{tx}",
+                    t.metadata.downstreamTxHash,
+                  )
                 : `https://snowtrace.io/tx/${t.metadata.downstreamTxHash}`
             }
             target="_blank"

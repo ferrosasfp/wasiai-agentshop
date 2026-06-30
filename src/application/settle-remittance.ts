@@ -31,7 +31,7 @@ export async function settleRemittance(args: {
   }
 
   return settleOnFacilitatorReal({
-    amountPYUSD: match.netDeliveredUSD,
+    amount: match.netDeliveredUSD,
     corridor: corridorDiscovery.recommended,
     match,
   });

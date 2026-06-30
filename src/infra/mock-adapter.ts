@@ -1,7 +1,7 @@
 import { decideAmlOutcome, classifySenderTier } from "@/core/compliance";
 import { applyMidMarketRateAll, rankCorridors, totalCostUSD } from "@/core/corridor";
 import { buildCashOutMatch, pickPartner } from "@/core/payout";
-import { kitescanUrl } from "@/core/settlement";
+import { explorerTxUrl, kitescanUrl } from "@/core/settlement";
 import { MOCK_CORRIDORS } from "@/lib/mock-data";
 import { getCurrencyFor } from "@/infra/fx-rates";
 import type {
@@ -11,7 +11,12 @@ import type {
   Remittance,
   SettlementReceipt,
 } from "@/types/remittance";
-import { KITE_CHAIN_ID, RECEIVER_ADDRESS, SENDER_ADDRESS } from "./env";
+import {
+  RECEIVER_ADDRESS,
+  SENDER_ADDRESS,
+  SETTLE_CHAIN_ID,
+  SETTLE_NETWORK,
+} from "./env";
 
 export function mockKyc(remittance: Remittance): KycResult {
   const aml = decideAmlOutcome({
@@ -82,16 +87,16 @@ export function mockSettle(args: {
     )) as `0x${string}`;
   return {
     txHash: fakeHash,
-    chainId: KITE_CHAIN_ID,
+    chainId: SETTLE_CHAIN_ID,
     blockNumber: 1_500_000 + Math.floor(Math.random() * 100_000),
     fromWallet: SENDER_ADDRESS,
     toWallet: RECEIVER_ADDRESS,
     amountPYUSD: args.match.netDeliveredUSD,
     corridor: args.corridorId,
     partner: args.match.partnerName,
-    network: `eip155:${KITE_CHAIN_ID}`,
+    network: SETTLE_NETWORK,
     facilitator: "wasiai-facilitator (demo mode)",
   };
 }
 
-export { kitescanUrl };
+export { explorerTxUrl, kitescanUrl };

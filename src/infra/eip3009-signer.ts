@@ -2,18 +2,25 @@ import { randomBytes } from "node:crypto";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { defineChain } from "viem";
-import { KITE_CHAIN_ID, KITE_RPC_URL, PYUSD_ADDRESS, SENDER_PRIVATE_KEY } from "./env";
+import {
+  SENDER_PRIVATE_KEY,
+  SETTLE_ASSET_ADDRESS,
+  SETTLE_CHAIN_ID,
+  SETTLE_EIP712_DOMAIN_NAME,
+  SETTLE_EIP712_DOMAIN_VERSION,
+  SETTLE_RPC_URL,
+} from "./env";
 
-const kiteTestnet = defineChain({
-  id: 2368,
-  name: "KiteAI Testnet",
-  nativeCurrency: { decimals: 18, name: "KITE", symbol: "KITE" },
+// The settlement chain is fully derived from SETTLE_* env (default Avalanche
+// Fuji 43113). No hardcoded chain — defineChain wires the configured id/RPC so
+// viem can sign typed data with the right chainId in the EIP-712 domain.
+const settlementChain = defineChain({
+  id: SETTLE_CHAIN_ID,
+  name: `settle-chain-${SETTLE_CHAIN_ID}`,
+  nativeCurrency: { decimals: 18, name: "GAS", symbol: "GAS" },
   rpcUrls: {
-    default: { http: ["https://rpc-testnet.gokite.ai/"] },
-    public: { http: ["https://rpc-testnet.gokite.ai/"] },
-  },
-  blockExplorers: {
-    default: { name: "KiteScan", url: "https://testnet.kitescan.ai" },
+    default: { http: [SETTLE_RPC_URL] },
+    public: { http: [SETTLE_RPC_URL] },
   },
   testnet: true,
 });
@@ -28,10 +35,6 @@ const EIP712_TYPES = {
     { name: "nonce", type: "bytes32" },
   ],
 } as const;
-
-const PYUSD_EIP712_DOMAIN_NAME = process.env.PYUSD_EIP712_DOMAIN_NAME ?? "PYUSD";
-const PYUSD_EIP712_DOMAIN_VERSION =
-  process.env.PYUSD_EIP712_DOMAIN_VERSION ?? "1";
 
 export interface SignedAuthorization {
   from: `0x${string}`;
@@ -58,8 +61,8 @@ function getWalletClient() {
   const account = privateKeyToAccount(pk);
   _walletClient = createWalletClient({
     account,
-    chain: kiteTestnet,
-    transport: http(KITE_RPC_URL),
+    chain: settlementChain,
+    transport: http(SETTLE_RPC_URL),
   });
   return _walletClient;
 }
@@ -85,10 +88,10 @@ export async function signTransferAuthorization(args: {
   const signature = await client.signTypedData({
     account,
     domain: {
-      name: PYUSD_EIP712_DOMAIN_NAME,
-      version: PYUSD_EIP712_DOMAIN_VERSION,
-      chainId: KITE_CHAIN_ID,
-      verifyingContract: PYUSD_ADDRESS,
+      name: SETTLE_EIP712_DOMAIN_NAME,
+      version: SETTLE_EIP712_DOMAIN_VERSION,
+      chainId: SETTLE_CHAIN_ID,
+      verifyingContract: SETTLE_ASSET_ADDRESS,
     },
     types: EIP712_TYPES,
     primaryType: "TransferWithAuthorization",

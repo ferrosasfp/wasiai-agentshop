@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import { settleRemittance } from "@/application/settle-remittance";
 import {
   FACILITATOR_URL,
-  KITE_CHAIN_ID,
   ONCHAIN_AMOUNT_CAP_PYUSD,
-  PYUSD_ADDRESS,
   SENDER_PRIVATE_KEY,
+  SETTLE_ASSET_ADDRESS,
+  SETTLE_ASSET_SYMBOL,
+  SETTLE_CHAIN_ID,
+  SETTLE_EIP712_DOMAIN_NAME,
+  SETTLE_EIP712_DOMAIN_VERSION,
+  SETTLE_NETWORK,
+  SETTLE_NETWORK_LABEL,
 } from "@/infra/env";
+import { toOnchainAmount } from "@/core/settlement";
 import type {
   CashOutMatch,
   CorridorDiscoveryResult,
@@ -40,7 +46,7 @@ export async function POST(req: Request) {
       body.match.netDeliveredUSD,
       ONCHAIN_AMOUNT_CAP_PYUSD,
     );
-    const valueAtomic = `${BigInt(Math.round(onchainAmount * 1e18))}`;
+    const valueAtomic = `${toOnchainAmount(onchainAmount)}`;
 
     // Section 03 — local EIP-3009 signing step (no network)
     const signTrace: TraceEvent = {
@@ -51,10 +57,10 @@ export async function POST(req: Request) {
         method: "(local)",
         body: {
           domain: {
-            name: "PYUSD",
-            version: "1",
-            chainId: KITE_CHAIN_ID,
-            verifyingContract: PYUSD_ADDRESS,
+            name: SETTLE_EIP712_DOMAIN_NAME,
+            version: SETTLE_EIP712_DOMAIN_VERSION,
+            chainId: SETTLE_CHAIN_ID,
+            verifyingContract: SETTLE_ASSET_ADDRESS,
           },
           primaryType: "TransferWithAuthorization",
           types: {
@@ -70,7 +76,7 @@ export async function POST(req: Request) {
           message: {
             from: receipt.fromWallet,
             to: receipt.toWallet,
-            value: `${valueAtomic} (= ${onchainAmount} PYUSD * 10^18)`,
+            value: `${valueAtomic} (= ${onchainAmount} ${SETTLE_ASSET_SYMBOL} atomic units)`,
             validAfter: "0",
             validBefore: "now + 300s",
             nonce: "0x... (32 random bytes per call)",
@@ -83,13 +89,13 @@ export async function POST(req: Request) {
           signedBy: receipt.fromWallet,
           note: "Signed with SENDER_PRIVATE_KEY (operator wallet). The key never leaves this server.",
         },
-        summary: `EIP-712 typed data signed for ${onchainAmount} PYUSD transfer to ${receipt.toWallet.slice(0, 8)}...`,
+        summary: `EIP-712 typed data signed for ${onchainAmount} ${SETTLE_ASSET_SYMBOL} transfer to ${receipt.toWallet.slice(0, 8)}...`,
       },
       metadata: {
         source: SENDER_PRIVATE_KEY ? "facilitator" : "demo-mode",
         latencyMs: 8,
-        chain: "kite-ozone-testnet",
-        asset: "PYUSD",
+        chain: SETTLE_NETWORK_LABEL,
+        asset: SETTLE_ASSET_SYMBOL,
       },
       timestamp: new Date().toISOString(),
     };
@@ -107,9 +113,9 @@ export async function POST(req: Request) {
           x402Version: 2,
           accepted: {
             scheme: "exact",
-            network: `eip155:${KITE_CHAIN_ID}`,
+            network: SETTLE_NETWORK,
             amount: valueAtomic,
-            asset: PYUSD_ADDRESS,
+            asset: SETTLE_ASSET_ADDRESS,
             payTo: receipt.toWallet,
             extra: { assetTransferMethod: "eip3009" },
           },
@@ -131,18 +137,18 @@ export async function POST(req: Request) {
           settled: true,
           transactionHash: receipt.txHash,
           blockNumber: receipt.blockNumber,
-          asset: "PYUSD",
+          asset: SETTLE_ASSET_SYMBOL,
           network: receipt.network,
         },
-        summary: `${onchainAmount.toFixed(4)} PYUSD settled · KiteScan tx ${receipt.txHash.slice(0, 10)}...`,
+        summary: `${onchainAmount.toFixed(4)} ${SETTLE_ASSET_SYMBOL} settled · ${SETTLE_NETWORK_LABEL} tx ${receipt.txHash.slice(0, 10)}...`,
       },
       metadata: {
         source: SENDER_PRIVATE_KEY ? "facilitator" : "demo-mode",
         latencyMs: Date.now() - started - signTrace.metadata!.latencyMs!,
         downstreamTxHash: receipt.txHash,
         downstreamBlockNumber: receipt.blockNumber,
-        chain: "kite-ozone-testnet",
-        asset: "PYUSD",
+        chain: SETTLE_NETWORK_LABEL,
+        asset: SETTLE_ASSET_SYMBOL,
       },
       timestamp: new Date().toISOString(),
     };
