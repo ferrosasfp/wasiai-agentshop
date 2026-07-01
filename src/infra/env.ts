@@ -43,6 +43,31 @@ export const ONCHAIN_AMOUNT_CAP_PYUSD = Number(
   process.env.ONCHAIN_AMOUNT_CAP_PYUSD ?? "0.5",
 );
 
+/**
+ * Shared secret that authenticates callers of `POST /api/settle` (M3 remediation).
+ *
+ * The settle route signs REAL EIP-3009 authorizations and relays them to the
+ * shared production facilitator, so it must not be world-callable. Callers must
+ * send `Authorization: Bearer <SETTLE_API_SECRET>`. When this var is UNSET the
+ * route fails CLOSED (every request → 401): you cannot authenticate against a
+ * secret that does not exist. Set it in the deployment env (Vercel) to a
+ * high-entropy value.
+ */
+export const SETTLE_API_SECRET = process.env.SETTLE_API_SECRET ?? "";
+
+/**
+ * Local per-IP rate limit for `POST /api/settle` (M3 remediation). Best-effort
+ * in-memory fixed window — a floor of defense that does not rely on the
+ * downstream facilitator caps. Overridable via env; low defaults for a demo
+ * endpoint that moves funds.
+ */
+export const SETTLE_RATE_LIMIT_MAX = Number(
+  process.env.SETTLE_RATE_LIMIT_MAX ?? "5",
+);
+export const SETTLE_RATE_LIMIT_WINDOW_MS = Number(
+  process.env.SETTLE_RATE_LIMIT_WINDOW_MS ?? "60000",
+);
+
 export function isDemoMode(): boolean {
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 }

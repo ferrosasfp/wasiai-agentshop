@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { settleAction } from "@/app/demo/settle-action";
 import { RemittancePicker } from "@/components/RemittancePicker";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { Settlement } from "@/components/Settlement";
@@ -131,17 +132,16 @@ export default function DemoPage() {
     activate("03", true);
     activate("04", true);
     try {
-      const res = await fetch("/api/settle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ remittance, corridor, match }),
-      }).then((r) => r.json());
-      setReceipt(res.receipt);
-      if (Array.isArray(res.traces)) {
-        res.traces.forEach((t: TraceEvent) => addTrace(t));
-      } else if (res.trace) {
-        addTrace(res.trace);
+      // Server Action (runs server-side): the SETTLE_API_SECRET / operator key
+      // never reach the browser. The external POST /api/settle route stays
+      // Bearer-closed for outside callers.
+      const res = await settleAction({ remittance, corridor, match });
+      if (!res.ok) {
+        setError(res.error);
+        return;
       }
+      setReceipt(res.receipt);
+      res.traces.forEach((t: TraceEvent) => addTrace(t));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Settle failed");
     } finally {
