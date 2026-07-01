@@ -40,6 +40,8 @@ export async function POST(req: Request) {
     recommended,
     rationale: `Top route is ${recommended.name} via ${recommended.provider}. Effective USD/${currency} rate ${recommended.fxRate} (mid ${midRate.toFixed(4)} · spread ${recommended.spreadBps ?? 0} bps). Cost ${cost.toFixed(2)} USD on a ${input.amountUSD} USD transfer · ${recommended.speedSeconds < 60 ? recommended.speedSeconds + "s" : Math.round(recommended.speedSeconds / 60) + "min"} delivery · reliability ${(recommended.reliabilityScore * 100).toFixed(1)}%. FX source: ${fxData.source} (${fxData.date}).`,
     agentPromptId: `corridor-${recommended.id}-${Date.now()}`,
+    amountUSD: input.amountUSD,
+    netUsdToDeliver: Math.round((input.amountUSD - cost) * 100) / 100,
   };
 
   return NextResponse.json(result);

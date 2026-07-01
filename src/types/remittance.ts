@@ -53,6 +53,14 @@ export interface CorridorDiscoveryResult {
   recommended: Corridor;
   rationale: string;
   agentPromptId: string;
+  /**
+   * Gross transfer amount the corridor was priced for (USD). Echoed so a
+   * downstream step (e.g. the cash-out matcher) can recover it via the a2a
+   * `previousOutput` passthrough instead of defaulting to a placeholder.
+   */
+  amountUSD?: number;
+  /** Net USD after the recommended corridor's fee (amountUSD − corridorCost). */
+  netUsdToDeliver?: number;
 }
 
 export interface CashOutMatch {
