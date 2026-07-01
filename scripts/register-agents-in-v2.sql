@@ -15,7 +15,7 @@ INSERT INTO agents (slug, name, description, category, tags, price_per_call, sta
 VALUES (
   'agentshop-kyc-validator',
   'AgentShop KYC Validator',
-  'Sender identity + AML compliance check for cross-border remittances. Returns sender tier classification (verified/basic/pending), AML outcome (clean/flagged/blocked), and a policy_id signed by the agent.',
+  'Step 1 of a remittance pipeline: verifies the sender''s identity and runs AML/compliance screening for a cross-border money transfer. Returns sender tier (verified/basic/pending), AML outcome (clean/flagged/blocked), and a signed policy_id. Compliance gate that must run before any money moves.',
   'compliance',
   ARRAY['kyc', 'aml', 'remittance', 'compliance', 'identity'],
   0.001,
@@ -36,7 +36,7 @@ INSERT INTO agents (slug, name, description, category, tags, price_per_call, sta
 VALUES (
   'agentshop-corridor-discoverer',
   'AgentShop Corridor Discoverer',
-  'Searches 4+ remittance corridors (Bitso, Felix Pay, Wise, Western Union, etc.) and ranks them by net cost + speed + reliability. Returns top recommendation + shortlist + rationale.',
+  'Step 2 of a remittance pipeline: ranks money-transfer corridors (Bitso, Felix Pay, Wise, Western Union, etc.) by rate, speed and reliability and returns the recommended route with live FX, shortlist and rationale. It only PRICES the best route — it does NOT deliver the funds. Always pair it with a cash-out matcher so the money actually reaches the recipient.',
   'fintech',
   ARRAY['remittance', 'corridor', 'fx', 'fintech', 'latam'],
   0.05,
@@ -57,7 +57,7 @@ INSERT INTO agents (slug, name, description, category, tags, price_per_call, sta
 VALUES (
   'agentshop-cashout-matcher',
   'AgentShop Cash-Out Matcher',
-  'Picks the optimal last-mile partner for remittance delivery: OXXO (MX), BBVA, Bancolombia (CO), Yape (PE), Mercado Pago (AR). Returns partner + fee + payout time + net local currency delivered.',
+  'Final step of a remittance pipeline: determines WHERE and HOW the recipient physically receives the money (Yape in Peru, Bancolombia in Colombia, OXXO/BBVA in Mexico, Mercado Pago in Argentina) and computes the net amount delivered in the recipient''s local currency. REQUIRED to complete any transfer — without it the money is only priced, never delivered.',
   'fintech',
   ARRAY['remittance', 'cashout', 'fintech', 'latam', 'partner'],
   0.01,
