@@ -25,7 +25,7 @@ import { buildCashOutMatch, pickPartner } from "@/core/payout";
 // zod schema — validates the SettleBody shape (mirrors src/types/remittance.ts)
 // ---------------------------------------------------------------------------
 
-const remittanceSchema = z.object({
+export const remittanceSchema = z.object({
   id: z.string(),
   sender: z.object({
     name: z.string(),
@@ -66,7 +66,7 @@ const corridorSchema = z.object({
   liquidityUSD: z.number().finite(),
 });
 
-const corridorDiscoverySchema = z.object({
+export const corridorDiscoverySchema = z.object({
   shortlist: z.array(corridorSchema),
   recommended: corridorSchema,
   rationale: z.string(),
@@ -95,17 +95,33 @@ export const settleBodySchema = z.object({
 export type SettleBody = z.infer<typeof settleBodySchema>;
 
 // ---------------------------------------------------------------------------
+// Pipeline body schemas — /api/kyc, /api/discover, /api/match (audit N4)
+// Mirror the loose `{ remittance }` / `{ remittance, corridor }` shapes the
+// routes and Server Actions accept, reusing the same field validators as settle.
+// ---------------------------------------------------------------------------
+
+export const kycBodySchema = z.object({ remittance: remittanceSchema });
+export const discoverBodySchema = z.object({ remittance: remittanceSchema });
+export const matchBodySchema = z.object({
+  remittance: remittanceSchema,
+  corridor: corridorDiscoverySchema,
+});
+
+// ---------------------------------------------------------------------------
 // Authentication — constant-time Bearer check, fails CLOSED
 // ---------------------------------------------------------------------------
 
 /**
- * Validates `Authorization: Bearer <SETTLE_API_SECRET>`.
+ * Generic `Authorization: Bearer <SETTLE_API_SECRET>` check for the money-path
+ * HTTP routes. Shared by `/api/settle` AND the pipeline routes `/api/kyc`,
+ * `/api/discover`, `/api/match` (audit finding N4) — all of which can trigger
+ * REAL on-chain spend and therefore must not be world-callable.
  *
  * Fails CLOSED: if `SETTLE_API_SECRET` is unset/empty every request is rejected
  * (you cannot authenticate against a non-existent secret). Uses a constant-time
  * comparison to avoid leaking the secret via timing.
  */
-export function authenticateSettle(req: Request): boolean {
+export function authenticateApi(req: Request): boolean {
   const secret = SETTLE_API_SECRET;
   if (!secret) return false; // fail closed — no secret configured
 
@@ -118,6 +134,15 @@ export function authenticateSettle(req: Request): boolean {
   const b = Buffer.from(secret);
   if (a.length !== b.length) return false; // timingSafeEqual requires equal length
   return timingSafeEqual(a, b);
+}
+
+/**
+ * Validates `Authorization: Bearer <SETTLE_API_SECRET>` for `/api/settle`.
+ * Thin alias over {@link authenticateApi} kept for the M3 call-sites; the
+ * timing-safe comparison lives in one place only.
+ */
+export function authenticateSettle(req: Request): boolean {
+  return authenticateApi(req);
 }
 
 // ---------------------------------------------------------------------------
@@ -159,12 +184,24 @@ export interface RateLimitResult {
   retryAfterSeconds?: number;
 }
 
+/**
+ * Optional per-call overrides for {@link checkRateLimit}. When omitted the
+ * settle defaults (`SETTLE_RATE_LIMIT_*`) apply, so existing settle call-sites
+ * are unchanged. The pipeline routes/actions pass their own, more generous
+ * `API_RATE_LIMIT_*` window (audit N4).
+ */
+export interface RateLimitOptions {
+  max?: number;
+  windowMs?: number;
+}
+
 export function checkRateLimit(
   key: string,
   now: number = Date.now(),
+  opts?: RateLimitOptions,
 ): RateLimitResult {
-  const windowMs = SETTLE_RATE_LIMIT_WINDOW_MS;
-  const max = SETTLE_RATE_LIMIT_MAX;
+  const windowMs = opts?.windowMs ?? SETTLE_RATE_LIMIT_WINDOW_MS;
+  const max = opts?.max ?? SETTLE_RATE_LIMIT_MAX;
 
   const state = rateState.get(key);
   if (!state || now >= state.resetAt) {

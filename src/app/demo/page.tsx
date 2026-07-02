@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { settleAction } from "@/app/demo/settle-action";
+import { kycAction, discoverAction, matchAction } from "@/app/demo/pipeline-actions";
 import { RemittancePicker } from "@/components/RemittancePicker";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { Settlement } from "@/components/Settlement";
@@ -87,11 +88,13 @@ export default function DemoPage() {
     activate("02", true);
 
     try {
-      const kycRes = await fetch("/api/kyc", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ remittance: rem }),
-      }).then((r) => r.json());
+      // Server Actions (run server-side): the pipeline HTTP routes are now
+      // Bearer-closed (audit N4), so the browser no longer calls them directly.
+      const kycRes = await kycAction({ remittance: rem });
+      if (!kycRes.ok) {
+        setError(kycRes.error);
+        return;
+      }
       setKyc(kycRes.result);
       addTrace(kycRes.trace);
 
@@ -101,20 +104,20 @@ export default function DemoPage() {
       }
       await sleep(200);
 
-      const corRes = await fetch("/api/discover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ remittance: rem }),
-      }).then((r) => r.json());
+      const corRes = await discoverAction({ remittance: rem });
+      if (!corRes.ok) {
+        setError(corRes.error);
+        return;
+      }
       setCorridor(corRes.result);
       addTrace(corRes.trace);
       await sleep(200);
 
-      const matchRes = await fetch("/api/match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ remittance: rem, corridor: corRes.result }),
-      }).then((r) => r.json());
+      const matchRes = await matchAction({ remittance: rem, corridor: corRes.result });
+      if (!matchRes.ok) {
+        setError(matchRes.error);
+        return;
+      }
       setMatch(matchRes.result);
       addTrace(matchRes.trace);
     } catch (e) {
