@@ -68,6 +68,30 @@ export const SETTLE_RATE_LIMIT_WINDOW_MS = Number(
   process.env.SETTLE_RATE_LIMIT_WINDOW_MS ?? "60000",
 );
 
+/**
+ * Local per-IP rate limit for the READ-side pipeline routes/actions
+ * `/api/kyc`, `/api/discover`, `/api/match` (audit finding N4).
+ *
+ * Like `/api/settle`, these entry points can trigger REAL on-chain spend: in
+ * real mode (A2A_KEY set, NEXT_PUBLIC_DEMO_MODE unset) each one calls
+ * `composeOnA2A`, which debits the shared A2A_KEY budget. They were previously
+ * world-callable with no auth or throttle, so anyone could spam them and drain
+ * the shared key's budget to its cap (same vector M3 closed for settle).
+ *
+ * A demo run fires 3 pipeline calls (kyc -> discover -> match), and the UI has a
+ * "Restart" button, so this bucket is separate from (and more generous than)
+ * the settle bucket to avoid throttling legitimate re-runs. Bucketed under a
+ * distinct `pipeline:` key namespace so pipeline traffic never eats into the
+ * settle counter. Best-effort in-memory floor; the on-chain A2A budget cap is
+ * the hard limit.
+ */
+export const API_RATE_LIMIT_MAX = Number(
+  process.env.API_RATE_LIMIT_MAX ?? "30",
+);
+export const API_RATE_LIMIT_WINDOW_MS = Number(
+  process.env.API_RATE_LIMIT_WINDOW_MS ?? "60000",
+);
+
 export function isDemoMode(): boolean {
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 }
