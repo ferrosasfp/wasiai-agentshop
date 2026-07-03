@@ -1,10 +1,9 @@
-# WasiAgentShop — Agentic remittances on Kite Ozone
+# WasiAgentShop
 
-> A marketplace where AI agents shop services on behalf of users.
-> Cross-border LATAM remittances settled in PYUSD on Kite Ozone, in under 30 seconds.
+Agentic cross-border remittances for LATAM, built on the WasiAI neutral payments layer. Three autonomous agents discover the best corridor, run a compliance check, and reserve the last mile, then settle the transfer in PYUSD on Kite Ozone (testnet).
 
-**Kite Hackathon 2026 submission** · Built on the WasiAI stack
-([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a) + [wasiai-facilitator](https://github.com/ferrosasfp/wasiai-facilitator))
+**Kite Hackathon 2026 submission**, built on the WasiAI stack
+([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a) + [wasiai-facilitator](https://github.com/ferrosasfp/wasiai-facilitator)).
 
 | | |
 |---|---|
@@ -18,51 +17,69 @@
 
 ## What it is
 
-LATAM remittances are a ~$63B/year market dominated by intermediaries that charge 5–7%
-and take hours-to-days to settle. The sender has no visibility into the best corridor
-(rate, speed, cash-out partner) and no guarantee until the money "appears" on the other side.
+Cross-border remittances are one of LATAM's largest financial flows, and they are still
+dominated by intermediaries that typically charge 5 to 7 percent and take hours or days to
+settle. The sender has little visibility into the best corridor (rate, speed, cash-out
+partner) and no guarantee until the money "appears" on the other side.
 
-WasiAgentShop is an agentic layer on top of Kite Ozone. When Luis Quispe wants to send
-$400 to his mom Rosa in Peru, his chatbot **autonomously**:
+WasiAgentShop is a demo app that puts an agentic layer on top of that flow. When a user wants
+to send money home, their assistant runs the whole operation autonomously:
 
-1. Pays **agent kyc-validator** ($0.001 PYUSD) to confirm the operation is AML-compliant
-2. Pays **agent corridor-discoverer** ($0.05 PYUSD) to evaluate 4+ rails with live FX and pick the best
-3. Pays **agent cashout-matcher** ($0.01 PYUSD) to reserve the last mile (Yape / BCP / Interbank)
-4. Signs an EIP-3009 gasless authorization — `wasiai-facilitator` settles PYUSD on Kite Ozone
+1. Pays the **kyc-validator** agent to confirm the operation is AML-compliant.
+2. Pays the **corridor-discoverer** agent to evaluate several rails with live FX and pick the best one.
+3. Pays the **cashout-matcher** agent to reserve the last mile (local wallet or bank).
+4. Signs a gasless EIP-3009 authorization, and `wasiai-facilitator` settles PYUSD on Kite Ozone.
 
-End-to-end: under 30 seconds. Total agent fees: $0.061. **The Kite thesis made real** — agents
-transacting with agents autonomously, on-chain, on verifiable infrastructure.
+The whole sequence runs in seconds, well under a minute in the demo. Agents transact with
+agents autonomously, on-chain, on verifiable infrastructure. That is the Kite thesis made real.
 
-## Why Kite
+Per-call agent fees in the demo are fractions of a cent in PYUSD (0.001 + 0.05 + 0.01),
+charged step by step, so the economics stay legible.
 
-- **PYUSD native** · USD-pegged stablecoin = natural fit for remittances (sender thinks in USD, receiver converts locally)
-- **Sub-second finality** · enables a "click → confirm" UX
-- **Agent-native chain** · agent-to-agent transactions are first-class
-- **x402 protocol** · machine-readable paywall = agents pay agents without humans in the loop
+## Where WasiAI fits
+
+WasiAI is a neutral, open, multi-chain payments layer for the agent economy, LATAM-first.
+The agent economy is fragmenting into walled gardens, where each exchange or marketplace
+becomes a closed economy locked to its own chain and token. WasiAI is the neutral ground:
+open standards (A2A, x402, ERC-8004) with settlement on each agent's native chain and no
+lock-in. The neutral layer itself is the **WasiAI A2A gateway**
+([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a)), which routes agent-to-agent
+payments and can settle on Kite or Avalanche depending on the agent.
+
+**This repo is one app on that layer, not the layer itself.** WasiAgentShop is the
+remittances vertical. The same gateway can power other verticals on other chains without
+changing the commerce plumbing.
+
+## Why Kite for this vertical
+
+- **PYUSD native**: a USD-pegged stablecoin is a natural fit for remittances. The sender thinks in USD, the receiver converts locally.
+- **Fast finality**: enables a "click, then confirm" UX.
+- **Agent-native chain**: agent-to-agent transactions are first-class.
+- **x402 protocol**: a machine-readable paywall lets agents pay agents without a human in the loop.
 
 ## Architecture
 
 ```
-   ┌─────────────────────────┐
+   ┌──────────────────────────────┐
    │ User chat / WasiAgentShop UI │
-   └────────────┬────────────┘
-                │
-                ▼
+   └───────────────┬──────────────┘
+                   │
+                   ▼
    ┌──────────────────────────────────────┐
-   │ wasiai-a2a · /compose                │  ← agent marketplace + payment routing
-   │ x-payment-chain: kite-ozone-testnet │
-   └──┬────────────┬────────────┬────────┘
-      │            │            │
-      ▼            ▼            ▼
-   ┌──────┐    ┌──────────┐  ┌────────────┐
-   │ kyc- │    │ corridor-│  │ cashout-   │  ← 3 autonomous agents
-   │valid.│    │ discov.  │  │ matcher    │     paid in PYUSD per call
-   └──────┘    └──────────┘  └────────────┘
-                                  │
-                                  ▼
-                       sender signs EIP-3009
-                                  │
-                                  ▼
+   │ wasiai-a2a · /compose                │  ← agent gateway + payment routing
+   │ x-payment-chain: kite-ozone-testnet  │
+   └──┬─────────────┬─────────────┬───────┘
+      │             │             │
+      ▼             ▼             ▼
+   ┌──────┐     ┌──────────┐  ┌────────────┐
+   │ kyc- │     │ corridor-│  │ cashout-   │  ← 3 autonomous agents
+   │valid.│     │ discov.  │  │ matcher    │     paid in PYUSD per call
+   └──────┘     └──────────┘  └────────────┘
+                                   │
+                                   ▼
+                        sender signs EIP-3009
+                                   │
+                                   ▼
                   ┌─────────────────────────┐
                   │ wasiai-facilitator      │  ← self-hosted x402 relayer
                   │ (pays gas in KITE)      │     gasless for the sender
@@ -74,20 +91,16 @@ transacting with agents autonomously, on-chain, on verifiable infrastructure.
                   └─────────────────────────┘
 ```
 
-The same WasiAI A2A gateway also powers **Lendable** — a separate vertical for LATAM SMB
-invoice factoring on Avalanche Fuji. Same code, different chain, different problem domain.
-That is the value of a chain-agnostic agent commerce layer.
-
 ## Stack
 
 | Layer | Tech |
 |---|---|
-| Frontend | Next.js 14 App Router · TypeScript strict · Tailwind |
+| Frontend | Next.js 14 App Router, TypeScript strict, Tailwind |
 | Architecture | hexagonal-light: `core/` (domain), `infra/` (adapters), `application/` (use cases), `app/` (routes) |
-| Onchain | viem · EIP-3009 (transferWithAuthorization) · Kite Ozone testnet (chainId 2368) · PYUSD `0x8E04D099…42ec9` |
-| Agent payments | wasiai-a2a `/compose` with `x-payment-chain: kite-ozone-testnet` (debited from the A2A budget per call) |
-| Settlement | wasiai-facilitator (self-hosted; multi-chain since 2026-05-13) |
-| FX | live USD→MXN/COP/PEN/ARS from `open.er-api.com`, 5-min cache, mid-market + corridor spread |
+| Onchain | viem, EIP-3009 (transferWithAuthorization), Kite Ozone testnet (chainId 2368), PYUSD |
+| Agent payments | wasiai-a2a `/compose` with `x-payment-chain: kite-ozone-testnet`, debited from the A2A budget per call |
+| Settlement | wasiai-facilitator (self-hosted, multi-chain) |
+| FX | live USD to MXN/COP/PEN/ARS from `open.er-api.com`, 5-minute cache, mid-market plus corridor spread |
 | Hosting | Vercel |
 
 ## Run locally
@@ -103,21 +116,22 @@ npm run dev
 Open <http://localhost:3020/demo>.
 
 By default `NEXT_PUBLIC_DEMO_MODE=true` runs a deterministic local pipeline with mocked
-agent responses — useful for grokking the flow without needing a funded A2A key. Flip it
-to `false` and supply real `A2A_KEY` + `SENDER_PRIVATE_KEY` to hit live wasiai-a2a + Kite
-Ozone (see `.env.example` for the full contract).
+agent responses, useful for grokking the flow without a funded A2A key. Flip it to `false`
+and supply a real `A2A_KEY` plus `SENDER_PRIVATE_KEY` (testnet) to hit live wasiai-a2a and
+Kite Ozone. See `.env.example` for the full contract.
 
-## Env vars
+## Configuration
 
-See `.env.example`. Highlights:
+All configuration lives in `.env.example`. Key variables:
 
-- `WASIAI_A2A_URL` · live at `wasiai-a2a-production.up.railway.app`
-- `WASIAI_FACILITATOR_URL` · self-hosted x402 facilitator on Railway
-- `KITE_CHAIN_ID=2368` · Kite Ozone testnet
-- `PYUSD_ADDRESS=0x8E04D099b1a8Dd20E6caD4b2Ab2B405B98242ec9`
-- `A2A_KEY` · scoped to the WasiAgentShop owner_ref; debited per /compose
-- `SENDER_PRIVATE_KEY` · OPERATOR wallet that signs EIP-3009 (testnet only)
-- `ONCHAIN_AMOUNT_CAP_PYUSD=0.05` · safety cap on settled amount
+- `WASIAI_A2A_URL`, `WASIAI_FACILITATOR_URL`: gateway and facilitator endpoints.
+- `KITE_CHAIN_ID=2368`, `KITE_RPC_URL`, `PYUSD_ADDRESS`: Kite Ozone testnet target.
+- `A2A_KEY`: scoped to the WasiAgentShop owner, debited per `/compose`.
+- `SENDER_PRIVATE_KEY`: operator wallet that signs EIP-3009 (testnet only).
+- `ONCHAIN_AMOUNT_CAP_PYUSD`: safety cap on the settled amount.
+- `SETTLE_API_SECRET`: bearer secret required by `POST /api/settle`, which signs real EIP-3009 authorizations. It fails closed, so if unset every call returns 401.
+
+Never commit real keys or secrets. `.env.local` is gitignored.
 
 ## Repo map
 
@@ -133,18 +147,20 @@ src/
 │       ├── settle/route.ts          # EIP-3009 sign + facilitator settle
 │       ├── marketplace/route.ts     # /discover the WasiAI marketplace
 │       └── agents/*/invoke/         # Agent endpoints registered in wasiai-v2
-├── core/                      # Domain (Corridor, Remittance, FX math)
-├── infra/                     # Adapters (fx-rates, a2a-client, facilitator-client)
-├── application/               # Use cases (settle-remittance)
+├── core/                      # Domain (Corridor, Remittance, FX math, compliance)
+├── infra/                     # Adapters (fx-rates, a2a-client, facilitator-client, eip3009-signer)
+├── application/               # Use cases (settle-remittance, run-kyc, discover-corridor)
 └── components/                # UI (RemittancePicker, PipelineProgress, TraceConsole, Settlement)
 ```
 
 ## Related repos
 
-- [`wasiai-a2a`](https://github.com/ferrosasfp/wasiai-a2a) — multi-chain A2A gateway (Kite + Avalanche)
-- [`wasiai-facilitator`](https://github.com/ferrosasfp/wasiai-facilitator) — self-hosted x402 relayer
-- [`wasiai-v2`](https://github.com/ferrosasfp/wasiai-v2) — agent marketplace UI
+- [`wasiai-a2a`](https://github.com/ferrosasfp/wasiai-a2a): the neutral, multi-chain A2A gateway (Kite + Avalanche).
+- [`wasiai-facilitator`](https://github.com/ferrosasfp/wasiai-facilitator): self-hosted x402 relayer.
+- [`wasiai-v2`](https://github.com/ferrosasfp/wasiai-v2): agent marketplace UI.
 
 ---
 
 **Fernando Rosas** · <fernando@wasiai.io> · [wasiai.io](https://wasiai.io)
+</content>
+</invoke>
