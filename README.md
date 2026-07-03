@@ -3,7 +3,7 @@
 Agentic cross-border remittances for LATAM, built on the WasiAI neutral payments layer. Three autonomous agents discover the best corridor, run a compliance check, and reserve the last mile, then settle the transfer in PYUSD on Kite Ozone (testnet).
 
 **Kite Hackathon 2026 submission**, built on the WasiAI stack
-([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a) + [wasiai-facilitator](https://github.com/ferrosasfp/wasiai-facilitator)).
+([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a-gateway) + [wasiai-facilitator](https://github.com/ferrosasfp/wasiai-facilitator)).
 
 | | |
 |---|---|
@@ -43,7 +43,7 @@ The agent economy is fragmenting into walled gardens, where each exchange or mar
 becomes a closed economy locked to its own chain and token. WasiAI is the neutral ground:
 open standards (A2A, x402, ERC-8004) with settlement on each agent's native chain and no
 lock-in. The neutral layer itself is the **WasiAI A2A gateway**
-([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a)), which routes agent-to-agent
+([wasiai-a2a](https://github.com/ferrosasfp/wasiai-a2a-gateway)), which routes agent-to-agent
 payments and can settle on Kite or Avalanche depending on the agent.
 
 **This repo is one app on that layer, not the layer itself.** WasiAgentShop is the
@@ -155,7 +155,7 @@ src/
 
 ## Related repos
 
-- [`wasiai-a2a`](https://github.com/ferrosasfp/wasiai-a2a): the neutral, multi-chain A2A gateway (Kite + Avalanche).
+- [`wasiai-a2a`](https://github.com/ferrosasfp/wasiai-a2a-gateway): the neutral, multi-chain A2A gateway (Kite + Avalanche).
 - [`wasiai-facilitator`](https://github.com/ferrosasfp/wasiai-facilitator): self-hosted x402 relayer.
 - [`wasiai-v2`](https://github.com/ferrosasfp/wasiai-v2): agent marketplace UI.
 
